@@ -12,7 +12,7 @@ homepage:           https://github.com/tonymorris/c172-preflight
 bug-reports:        https://github.com/tonymorris/c172-preflight/issues
 cabal-version:      >= 1.10
 build-type:         Custom
-extra-source-files: changelog, todo.md
+extra-source-files: changelog
 
 source-repository   head
   type:             git
@@ -27,6 +27,11 @@ library
 
   build-depends:
                     base < 5 && >= 4.8
+                    , lens
+                    , diagrams
+                    , diagrams-lib
+                    , diagrams-rasterific
+                    , plots
                     
   ghc-options:
                     -Wall
