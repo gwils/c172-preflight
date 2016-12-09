@@ -3,10 +3,127 @@
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
-import Diagrams.Prelude
+import Data.List.NonEmpty hiding (map)
+import Diagrams.Prelude hiding (fromPoints)
 import Diagrams.Backend.Rasterific.CmdLine
 import Plots
 import Control.Lens
+import Data.Geometry.Point
+import Data.Geometry.Polygon
+import Data.Ext
+import qualified Data.CircularSeq as C
+
+data Arm =
+  Arm {
+    _armmeasure ::
+      Int -- inches
+  , _armrange ::
+      Maybe (Int, Int)
+  } deriving (Eq, Ord, Show)
+
+makeClassy ''Arm
+
+armnorange :: 
+  Int
+  -> Arm
+armnorange n =
+  Arm n Nothing
+
+data C172KnownArmType =
+  FrontSeat
+  | RearSeat
+  | Fuel
+  | BaggageA
+  | BaggageB
+  deriving (Eq, Ord, Show)
+
+knownarm ::
+  C172KnownArmType
+  -> Arm
+knownarm FrontSeat =
+  Arm 37 (Just (34, 46))
+knownarm RearSeat =
+  armnorange 73
+knownarm Fuel =
+  armnorange 48
+knownarm BaggageA =
+  Arm 95 (Just (82, 1808))
+knownarm BaggageB =
+  Arm 123 (Just (108, 142))
+
+newtype Limits a =
+  Limits
+    [(NonEmpty a, Double)]
+
+data ArmType a =
+  ArmType
+    (a -> Arm)
+    (Limits a)
+
+c172ArmType ::
+  ArmType C172KnownArmType
+c172ArmType =
+  ArmType
+    (
+      \a -> case a of
+              FrontSeat ->
+                Arm 37 (Just (34, 46))
+              RearSeat ->
+                armnorange 73
+              Fuel ->
+                armnorange 48
+              BaggageA ->
+                Arm 95 (Just (82, 1808))
+              BaggageB ->
+                Arm 123 (Just (108, 142))
+    )
+    (
+      Limits
+      [
+        (return BaggageA,        120)
+      , (return BaggageB,        50)
+      , (BaggageA :| [BaggageB], 120)
+      , (return Fuel,            56)
+      ]
+    )
+
+newtype Weights a =
+  Weights
+    (a -> Double)
+
+sampleWeights ::
+  Weights C172KnownArmType
+sampleWeights =
+  Weights (\t -> case t of
+                   FrontSeat ->
+                     363.763
+                   RearSeat ->
+                     176.37
+                   Fuel ->
+                     30
+                   BaggageA ->
+                     22.0462
+                   BaggageB -> 
+                     2.20462
+          )
+
+
+-- ArmType a -> Weights a -> (total weight, total moment, limits)
+-- [CGEnvelope] -> ArmType a -> Weights a -> (total weight, total moment, limits, [EnvelopeDeviation])
+
+-- ArmType a -> Weights a -> Report
+-- Report, total weight, total moment index, limits
+
+-- ArmType a -> (AircraftWeight, AircraftArm) -> Weights a -> CGEnvelope -> Report
+
+data C172ArmType =
+  Aircraft
+  | KnownC172ArmType C172KnownArmType
+  deriving (Eq, Ord, Show)
+  
+{-
+
+----
 
 data Arm =
   Arm {
@@ -95,9 +212,9 @@ data MaximumWeight =
   }
   deriving (Eq, Ord, Show)
     
-c172RMaximumWeight ::
+c172SMaximumWeight ::
   MaximumWeight
-c172RMaximumWeight =
+c172SMaximumWeight =
   MaximumWeight
     120
     50
@@ -117,6 +234,8 @@ sample =
     22.0462
     2.20462
 
+-}
+
 -- https://hackage.haskell.org/package/hgeometry-0.5.0.0/docs/Data-Geometry-Polygon.html
 
 -- AircraftArm -> MaximumWeight -> AircraftWeight -> CGEnvelope -> Report
@@ -133,6 +252,49 @@ Basic Empty Weight
 -}
 
 ----
+
+{-
+let simplePoly :: SimplePolygon () Rational
+    simplePoly = SimplePolygon . C.fromList . map ext $ [ point2 0 0
+                                                        , point2 10 0
+                                                        , point2 10 10
+                                                        , point2 5 15
+                                                        , point2 1 11
+                                                        ]
+-}
+
+samplePolygon :: 
+  Num r =>
+  SimplePolygon () r
+samplePolygon =
+  fromPoints . map ext $
+    [
+      point2 2 1
+    , point2 5 7
+    , point2 8 10
+    , point2 9 10
+    , point2 7 4
+    , point2 5 2
+    ]    
+
+simplePoly = SimplePolygon . C.fromList . map ext $ [ point2 0 0
+                                                        , point2 10 0
+                                                        , point2 10 10
+                                                        , point2 5 15
+                                                        , point2 1 11
+                                                        ]
+
+works = point2 1 1 `inPolygon` simplePoly
+fucks =
+  [
+    point2 0 0 `inPolygon` simplePoly
+  , point2 1 1 `inPolygon` simplePoly
+  , point2 10 0 `inPolygon` simplePoly
+  -- , point2 5 13 `inPolygon` simplePoly
+  -- , point2 5 10 `inPolygon` simplePoly
+  -- , point2 10 5 `inPolygon` simplePoly
+  -- , point2 20 5 `inPolygon` simplePoly
+  ]
 
 ---- TODR/LDR
 
