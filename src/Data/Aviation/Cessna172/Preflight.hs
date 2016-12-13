@@ -1,10 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
 import Data.List.NonEmpty hiding (map)
-import Diagrams.Prelude hiding (fromPoints)
+import Data.Set(Set)
+import qualified Data.Set as Set
+import Diagrams.Prelude hiding (fromPoints, centroid, (#))
 import Diagrams.Backend.Rasterific.CmdLine
 import Plots
 import Control.Lens
@@ -13,21 +19,95 @@ import Data.Geometry.Polygon
 import Data.Ext
 import qualified Data.CircularSeq as C
 
+{-
+
+Set a -- all arms
+(a -> Name) -- names
+(a -> Capacity) -- weights/volumes
+(a -> Arm) -- arms
+[Set a, Capacity] -- limits
+
+-}
+
+data Allarmtypes a =
+  Allarmtypes
+    (Set a)
+  deriving (Eq, Ord, Show)
+
+makeWrapped ''Allarmtypes
+
+newtype Armname =
+  Armname
+    String -- todo
+  deriving (Eq, Ord, Show)
+
+makeWrapped ''Armname
+
+newtype GetArmname a =
+  GetArmname
+    (a -> Armname)
+
+makeWrapped ''GetArmname
+
+data Capacity =
+  Capacity
+    Rational -- todo, assume lbs for now
+  deriving (Eq, Ord, Show)
+
+makeClassy ''Capacity
+
+newtype GetCapacity a =
+  GetCapacity
+    (a -> Capacity)
+
+makeWrapped ''GetCapacity
+
 data Arm =
   Arm {
     _armmeasure ::
-      Int -- inches
+      Rational -- inches
   , _armrange ::
-      Maybe (Int, Int)
-  } deriving (Eq, Ord, Show)
+      Maybe (Rational, Rational)
+  }
+  deriving (Eq, Ord, Show)
 
 makeClassy ''Arm
 
+newtype GetArm a =
+  GetArm
+    (a -> Arm)
+
+makeWrapped ''GetArm
+
+data Limit a =
+  Limit
+    (Set a)
+    Capacity
+  deriving (Eq, Ord, Show)
+
+makeClassy ''Limit
+
+onelimit ::
+  a
+  -> Capacity
+  -> Limit a
+onelimit =
+  Limit . Set.singleton
+
+newtype Limits a =
+  Limits
+    [Limit a]
+  deriving (Eq, Ord, Show)
+
+makeWrapped ''Limits
+
 armnorange :: 
-  Int
+  Rational
   -> Arm
 armnorange n =
   Arm n Nothing
+
+----
 
 data C172KnownArmType =
   FrontSeat
@@ -37,23 +117,280 @@ data C172KnownArmType =
   | BaggageB
   deriving (Eq, Ord, Show)
 
-knownarm ::
-  C172KnownArmType
-  -> Arm
-knownarm FrontSeat =
-  Arm 37 (Just (34, 46))
-knownarm RearSeat =
-  armnorange 73
-knownarm Fuel =
-  armnorange 48
-knownarm BaggageA =
-  Arm 95 (Just (82, 1808))
-knownarm BaggageB =
-  Arm 123 (Just (108, 142))
+allarmtypesC172KnownArmType ::
+  Allarmtypes C172KnownArmType
+allarmtypesC172KnownArmType =
+  Allarmtypes (Set.fromList [FrontSeat, RearSeat, Fuel, BaggageA, BaggageB])
 
+getarmnameC172KnownArmType ::
+  GetArmname C172KnownArmType
+getarmnameC172KnownArmType =
+  GetArmname (
+      \a -> Armname (
+              case a of
+                FrontSeat -> 
+                  "front seat"
+                RearSeat -> 
+                  "rear seat"
+                Fuel -> 
+                  "fuel"
+                BaggageA -> 
+                  "baggage A"
+                BaggageB -> 
+                  "baggage B"
+            )
+    )
+
+getcapacityC172KnownArmType ::
+  GetCapacity C172KnownArmType
+getcapacityC172KnownArmType =
+  GetCapacity (
+      \a -> Capacity (
+              case a of
+                FrontSeat -> 
+                  363.763
+                RearSeat -> 
+                  176.37
+                Fuel -> 
+                  180
+                BaggageA -> 
+                  22.0462
+                BaggageB -> 
+                  2.20462
+            )
+    )
+
+getarmC172KnownArmType ::
+  GetArm C172KnownArmType
+getarmC172KnownArmType =
+  GetArm (
+      \a -> case a of
+              FrontSeat ->
+                Arm 37 (Just (34, 46))
+              RearSeat ->
+                armnorange 73
+              Fuel ->
+                armnorange 288
+              BaggageA ->
+                Arm 95 (Just (82, 1808))
+              BaggageB ->
+                Arm 123 (Just (108, 142))
+          
+    )
+
+limitsC172KnownArmType ::
+  Limits C172KnownArmType
+limitsC172KnownArmType =
+  Limits
+    [
+      Limit (Set.singleton BaggageA) (Capacity 120)
+    , Limit (Set.singleton BaggageB) (Capacity 50)
+    , Limit (Set.fromList [BaggageA, BaggageB]) (Capacity 120)
+    , Limit (Set.singleton Fuel) (Capacity 336)
+    ]
+
+totalCapacityWith  ::
+  Num a =>
+  (t -> Rational -> a)
+  -> Allarmtypes t
+  -> GetCapacity t
+  -> a
+totalCapacityWith f (Allarmtypes x) (GetCapacity c) =
+  foldl (\a b -> let Capacity y = c b
+                 in  a + f b y) 0 x
+
+totalCapacity ::
+  Allarmtypes a
+  -> GetCapacity a
+  -> Rational
+totalCapacity =
+  totalCapacityWith (const id)
+
+totalArm ::
+  Allarmtypes a
+  -> GetCapacity a
+  -> GetArm a
+  -> Rational
+totalArm t c r =
+  totalCapacityWith (\b y -> y * ((^. armmeasure) . (r ^. _Wrapped) $ b)) t c
+
+capacityLimits ::
+  Limits a
+  -> GetCapacity a
+  -> Limits a
+capacityLimits (Limits x) (GetCapacity c) =
+  Limits ((\(Limit s (Capacity d)) -> let z = foldl (\a b -> let Capacity y = c b in a + y) 0 s in Limit s (Capacity (d - z))) <$> x)
+
+
+c172NormalCategory :: 
+  SimplePolygon () Rational
+c172NormalCategory =
+  fromPoints . map ext $
+    [
+      point2 120.5 2550
+    , point2 71 1500
+    , point2 52.5 1500
+    , point2 68 1950
+    , point2 104.5 2550
+    ]
+
+c172UtilityCategory :: 
+  SimplePolygon () Rational
+c172UtilityCategory =
+  fromPoints . map ext $
+    [
+      point2 61 1500
+    , point2 89 2200
+    , point2 82.5 2200
+    , point2 68 1950
+    ]
+
+{-
 newtype Limits a =
   Limits
-    [(NonEmpty a, Double)]
+    [(NonEmpty a, Rational, String)]
+
+instance Monoid (Limits a) where
+  mempty =
+    Limits
+      []
+  Limits a `mappend` Limits b =
+    Limits (a `mappend` b)
+
+instance Functor Limits where
+  fmap f (Limits x) =
+    Limits (fmap (\(a, b, c) -> (fmap f a, b, c)) x)
+
+data ArmType a =
+  ArmType {
+    _getarm ::
+      a -> Arm
+  , _getlimits ::
+      Limits a
+  }
+
+makeClassy ''ArmType
+
+c172KnownArmType ::
+  ArmType C172KnownArmType
+c172KnownArmType =
+  ArmType
+    (
+      \a -> case a of
+              FrontSeat ->
+                Arm 37 (Just (34, 46))
+              RearSeat ->
+                armnorange 73
+              Fuel ->
+                armnorange 48
+              BaggageA ->
+                Arm 95 (Just (82, 1808))
+              BaggageB ->
+                Arm 123 (Just (108, 142))
+    )
+    (
+      Limits
+      [
+        (return BaggageA,        120, "Maximum Baggage (A)")
+      , (return BaggageB,        50, "Maximum Baggage (B)")
+      , (BaggageA :| [BaggageB], 120, "Maximum Total Baggage")
+      , (return Fuel,            56, "Maximum Fuel Capacity")
+      ]
+    )
+
+newtype Weights a =
+  Weights
+    (a -> Rational)
+
+makeWrapped ''Weights
+
+c172KnownWeights ::
+  Weights C172KnownArmType
+c172KnownWeights =
+  Weights (\t -> case t of
+                   FrontSeat ->
+                     363.763
+                   RearSeat ->
+                     176.37
+                   Fuel ->
+                     30
+                   BaggageA ->
+                     22.0462
+                   BaggageB -> 
+                     2.20462
+          )
+
+-- ArmType a -> Weights a -> (total weight, total moment, limits)
+-- [CGEnvelope] -> ArmType a -> Weights a -> (total weight, total moment, limits, [EnvelopeDeviation])
+
+-- ArmType a -> Weights a -> Report
+-- Report, total weight, total moment index, limits
+
+-- ArmType a -> (AircraftWeight, AircraftArm) -> Weights a -> CGEnvelope -> Report
+
+data C172ArmType =
+  Aircraft
+  | KnownC172ArmType C172KnownArmType
+  deriving (Eq, Ord, Show)
+  
+c172sArmType ::
+  Arm
+  -> ArmType C172ArmType
+c172sArmType a =
+  ArmType
+    (\t -> case t of
+             Aircraft ->
+               a
+             KnownC172ArmType e ->
+               (c172KnownArmType ^. getarm) e)
+    (fmap KnownC172ArmType (c172KnownArmType ^. getlimits) `mappend` Limits [(Aircraft :| map KnownC172ArmType [FrontSeat, RearSeat, Fuel, BaggageA, BaggageB], 2558, "Maximum Ramp Weight (MRW)")])
+
+vhlseArmType =
+  c172sArmType (armnorange 40.6)
+
+vhlseWeights ::
+  Weights C172ArmType
+vhlseWeights =
+  Weights (\t -> case t of 
+                   Aircraft ->
+                     1691.6
+                   KnownC172ArmType u ->
+                     (c172KnownWeights ^. _Wrapped) u)
+
+-- Limits a -> ArmType a -> Weights a -> (Total weight, Total moment, Limits?)
+data PrelimReport =
+  PrelimReport {
+    _totalweight ::
+      Rational
+  , _totalmoment ::
+      Rational  
+  }
+  deriving (Eq, Ord, Show)
+
+prelimReport ::
+  Limits a
+  -> ArmType a
+  -> Weights a
+  -> PrelimReport
+prelimReport =
+  undefined
+-}
+
+{-
+VH-LSE
+
+Weight (lbs): 1663.2
+Arm (in): 40.719
+Moment (lb-in): 67724
+Basic Empty Weight
+
+    Weight (lbs): 1691.6
+    Arm (in): 40.600
+    Moment (lb-in): 68679
+-}
+
+
+{-
 
 data ArmType a =
   ArmType
@@ -86,41 +423,9 @@ c172ArmType =
       , (return Fuel,            56)
       ]
     )
-
-newtype Weights a =
-  Weights
-    (a -> Double)
-
-sampleWeights ::
-  Weights C172KnownArmType
-sampleWeights =
-  Weights (\t -> case t of
-                   FrontSeat ->
-                     363.763
-                   RearSeat ->
-                     176.37
-                   Fuel ->
-                     30
-                   BaggageA ->
-                     22.0462
-                   BaggageB -> 
-                     2.20462
-          )
+-}
 
 
--- ArmType a -> Weights a -> (total weight, total moment, limits)
--- [CGEnvelope] -> ArmType a -> Weights a -> (total weight, total moment, limits, [EnvelopeDeviation])
-
--- ArmType a -> Weights a -> Report
--- Report, total weight, total moment index, limits
-
--- ArmType a -> (AircraftWeight, AircraftArm) -> Weights a -> CGEnvelope -> Report
-
-data C172ArmType =
-  Aircraft
-  | KnownC172ArmType C172KnownArmType
-  deriving (Eq, Ord, Show)
-  
 {-
 
 ----
@@ -240,32 +545,11 @@ sample =
 
 -- AircraftArm -> MaximumWeight -> AircraftWeight -> CGEnvelope -> Report
 
-{-
-Weight (lbs): 1663.2
-Arm (in): 40.719
-Moment (lb-in): 67724
-Basic Empty Weight
-
-    Weight (lbs): 1691.6
-    Arm (in): 40.600
-    Moment (lb-in): 68679
--}
 
 ----
 
-{-
-let simplePoly :: SimplePolygon () Rational
-    simplePoly = SimplePolygon . C.fromList . map ext $ [ point2 0 0
-                                                        , point2 10 0
-                                                        , point2 10 10
-                                                        , point2 5 15
-                                                        , point2 1 11
-                                                        ]
--}
-
 samplePolygon :: 
-  Num r =>
-  SimplePolygon () r
+  SimplePolygon () Rational
 samplePolygon =
   fromPoints . map ext $
     [
@@ -277,23 +561,15 @@ samplePolygon =
     , point2 5 2
     ]    
 
-simplePoly = SimplePolygon . C.fromList . map ext $ [ point2 0 0
-                                                        , point2 10 0
-                                                        , point2 10 10
-                                                        , point2 5 15
-                                                        , point2 1 11
-                                                        ]
-
-works = point2 1 1 `inPolygon` simplePoly
-fucks =
+testinpolygon =
   [
-    point2 0 0 `inPolygon` simplePoly
-  , point2 1 1 `inPolygon` simplePoly
-  , point2 10 0 `inPolygon` simplePoly
-  -- , point2 5 13 `inPolygon` simplePoly
-  -- , point2 5 10 `inPolygon` simplePoly
-  -- , point2 10 5 `inPolygon` simplePoly
-  -- , point2 20 5 `inPolygon` simplePoly
+    point2 0 0 `inPolygon` samplePolygon
+  , point2 1 1 `inPolygon` samplePolygon
+  , point2 10 0 `inPolygon` samplePolygon
+  , point2 5 13 `inPolygon` samplePolygon
+  , point2 5 10 `inPolygon` samplePolygon
+  , point2 10 5 `inPolygon` samplePolygon
+  , point2 20 5 `inPolygon` samplePolygon
   ]
 
 ---- TODR/LDR
@@ -596,7 +872,7 @@ _inner x =
 
 
 _polygon1 = [(120.5, 2550), (71, 1500), (52.5,1500), (68,1950), (104.5, 2550)]
-_polygon2 = [(61, 1500), (89, 2200), (82.5, 2200)]
+_polygon2 = [(61, 1500), (89, 2200), (82.5, 2200), (68,1950)]
 
 
 myaxis :: Axis B V2 Double

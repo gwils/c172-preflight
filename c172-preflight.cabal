@@ -33,6 +33,7 @@ library
                     , diagrams-rasterific
                     , plots
                     , hgeometry
+                    , containers
                     
   ghc-options:
                     -Wall
