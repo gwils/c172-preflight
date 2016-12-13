@@ -7,17 +7,16 @@
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
-import Data.List.NonEmpty hiding (map)
 import Data.Set(Set)
-import qualified Data.Set as Set
-import Diagrams.Prelude hiding (fromPoints, centroid, (#))
-import Diagrams.Backend.Rasterific.CmdLine
-import Plots
-import Control.Lens
-import Data.Geometry.Point
-import Data.Geometry.Polygon
-import Data.Ext
-import qualified Data.CircularSeq as C
+import qualified Data.Set as Set(singleton, fromList)
+import Diagrams.Prelude(V2)
+import Diagrams.Backend.Rasterific.CmdLine(B)
+import Plots(Axis, r2Axis, r2AxisMain, linePlot')
+import Control.Lens(Prism', _Wrapped, makeWrapped, makeClassy, prism', (&~), (^.))
+import Data.Geometry.Boundary(PointLocationResult)
+import Data.Geometry.Point(point2)
+import Data.Geometry.Polygon(SimplePolygon, inPolygon, fromPoints)
+import Data.Ext(ext)
 
 {-
 
@@ -189,6 +188,8 @@ limitsC172KnownArmType =
     , Limit (Set.singleton Fuel) (Capacity 336)
     ]
 
+----
+
 totalCapacityWith  ::
   Num a =>
   (t -> Rational -> a)
@@ -246,137 +247,7 @@ c172UtilityCategory =
     ]
 
 {-
-newtype Limits a =
-  Limits
-    [(NonEmpty a, Rational, String)]
 
-instance Monoid (Limits a) where
-  mempty =
-    Limits
-      []
-  Limits a `mappend` Limits b =
-    Limits (a `mappend` b)
-
-instance Functor Limits where
-  fmap f (Limits x) =
-    Limits (fmap (\(a, b, c) -> (fmap f a, b, c)) x)
-
-data ArmType a =
-  ArmType {
-    _getarm ::
-      a -> Arm
-  , _getlimits ::
-      Limits a
-  }
-
-makeClassy ''ArmType
-
-c172KnownArmType ::
-  ArmType C172KnownArmType
-c172KnownArmType =
-  ArmType
-    (
-      \a -> case a of
-              FrontSeat ->
-                Arm 37 (Just (34, 46))
-              RearSeat ->
-                armnorange 73
-              Fuel ->
-                armnorange 48
-              BaggageA ->
-                Arm 95 (Just (82, 1808))
-              BaggageB ->
-                Arm 123 (Just (108, 142))
-    )
-    (
-      Limits
-      [
-        (return BaggageA,        120, "Maximum Baggage (A)")
-      , (return BaggageB,        50, "Maximum Baggage (B)")
-      , (BaggageA :| [BaggageB], 120, "Maximum Total Baggage")
-      , (return Fuel,            56, "Maximum Fuel Capacity")
-      ]
-    )
-
-newtype Weights a =
-  Weights
-    (a -> Rational)
-
-makeWrapped ''Weights
-
-c172KnownWeights ::
-  Weights C172KnownArmType
-c172KnownWeights =
-  Weights (\t -> case t of
-                   FrontSeat ->
-                     363.763
-                   RearSeat ->
-                     176.37
-                   Fuel ->
-                     30
-                   BaggageA ->
-                     22.0462
-                   BaggageB -> 
-                     2.20462
-          )
-
--- ArmType a -> Weights a -> (total weight, total moment, limits)
--- [CGEnvelope] -> ArmType a -> Weights a -> (total weight, total moment, limits, [EnvelopeDeviation])
-
--- ArmType a -> Weights a -> Report
--- Report, total weight, total moment index, limits
-
--- ArmType a -> (AircraftWeight, AircraftArm) -> Weights a -> CGEnvelope -> Report
-
-data C172ArmType =
-  Aircraft
-  | KnownC172ArmType C172KnownArmType
-  deriving (Eq, Ord, Show)
-  
-c172sArmType ::
-  Arm
-  -> ArmType C172ArmType
-c172sArmType a =
-  ArmType
-    (\t -> case t of
-             Aircraft ->
-               a
-             KnownC172ArmType e ->
-               (c172KnownArmType ^. getarm) e)
-    (fmap KnownC172ArmType (c172KnownArmType ^. getlimits) `mappend` Limits [(Aircraft :| map KnownC172ArmType [FrontSeat, RearSeat, Fuel, BaggageA, BaggageB], 2558, "Maximum Ramp Weight (MRW)")])
-
-vhlseArmType =
-  c172sArmType (armnorange 40.6)
-
-vhlseWeights ::
-  Weights C172ArmType
-vhlseWeights =
-  Weights (\t -> case t of 
-                   Aircraft ->
-                     1691.6
-                   KnownC172ArmType u ->
-                     (c172KnownWeights ^. _Wrapped) u)
-
--- Limits a -> ArmType a -> Weights a -> (Total weight, Total moment, Limits?)
-data PrelimReport =
-  PrelimReport {
-    _totalweight ::
-      Rational
-  , _totalmoment ::
-      Rational  
-  }
-  deriving (Eq, Ord, Show)
-
-prelimReport ::
-  Limits a
-  -> ArmType a
-  -> Weights a
-  -> PrelimReport
-prelimReport =
-  undefined
--}
-
-{-
 VH-LSE
 
 Weight (lbs): 1663.2
@@ -387,165 +258,10 @@ Basic Empty Weight
     Weight (lbs): 1691.6
     Arm (in): 40.600
     Moment (lb-in): 68679
--}
-
-
-{-
-
-data ArmType a =
-  ArmType
-    (a -> Arm)
-    (Limits a)
-
-c172ArmType ::
-  ArmType C172KnownArmType
-c172ArmType =
-  ArmType
-    (
-      \a -> case a of
-              FrontSeat ->
-                Arm 37 (Just (34, 46))
-              RearSeat ->
-                armnorange 73
-              Fuel ->
-                armnorange 48
-              BaggageA ->
-                Arm 95 (Just (82, 1808))
-              BaggageB ->
-                Arm 123 (Just (108, 142))
-    )
-    (
-      Limits
-      [
-        (return BaggageA,        120)
-      , (return BaggageB,        50)
-      , (BaggageA :| [BaggageB], 120)
-      , (return Fuel,            56)
-      ]
-    )
--}
-
-
-{-
-
-----
-
-data Arm =
-  Arm {
-    _armmeasure ::
-      Int -- inches
-  , _armrange ::
-      Maybe (Int, Int)
-  , _name ::
-      Maybe String
-  } deriving (Eq, Ord, Show)
-
-makeClassy ''Arm
-
-armnorange :: 
-  Int
-  -> Maybe String
-  -> Arm
-armnorange n m =
-  Arm n Nothing m
-
-
-data AircraftArm =
-  AircraftArm {
-    _aeroplane ::
-      Arm
-  , _frontseat ::
-      Arm
-  , _fuel ::
-      Arm
-  , _rearseat ::
-      Arm
-  , _baggagea ::
-      Arm
-  , _baggageb ::
-      Arm
-  }
-  deriving (Eq, Ord, Show)
-
-c172arm ::
-  Arm -- aeroplane arm
-  -> AircraftArm
-c172arm a =
-  AircraftArm
-    a
-    (Arm 37 (Just (34, 46)) (Just "front seat"))
-    (armnorange 48 (Just "fuel"))
-    (armnorange 73 (Just "rear seat"))
-    (Arm 95 (Just (82, 108)) (Just "baggage A"))
-    (Arm 123 (Just (108, 142)) (Just "baggage B"))
-
--- baggage "A" maximum 120lb
--- baggage "B" maximum 50lb
--- maximum overall baggage 120lb
-
-data AircraftWeight =
-  AircraftWeight {
-    _bew ::
-      Double
-  , _frontseatweight ::
-      Double -- pounds
-  , _fuelweight ::
-      Double -- gallons
-  , _rearseatweight ::
-      Double
-  , _baggageaweight ::
-      Double
-  , _baggagebweight ::
-      Double
-  }
-  deriving (Eq, Ord, Show)
-
-data MaximumWeight =
-  MaximumWeight {
-    baggagea ::
-      Int
-  , baggageb ::
-      Int
-  , totalbaggage ::
-      Int
-  , fuel ::
-      Int
-  , mrw ::
-      Int
-  , mtow ::
-      Int
-  }
-  deriving (Eq, Ord, Show)
-    
-c172SMaximumWeight ::
-  MaximumWeight
-c172SMaximumWeight =
-  MaximumWeight
-    120
-    50
-    120
-    336
-    2558
-    2550
-
-sample ::
-  AircraftWeight
-sample =
-  AircraftWeight
-    1691.6
-    363.763
-    30
-    176.37
-    22.0462
-    2.20462
-
--}
 
 -- https://hackage.haskell.org/package/hgeometry-0.5.0.0/docs/Data-Geometry-Polygon.html
 
--- AircraftArm -> MaximumWeight -> AircraftWeight -> CGEnvelope -> Report
-
-
+-}
 ----
 
 samplePolygon :: 
@@ -561,6 +277,8 @@ samplePolygon =
     , point2 5 2
     ]    
 
+testinpolygon ::
+  [PointLocationResult]
 testinpolygon =
   [
     point2 0 0 `inPolygon` samplePolygon
@@ -861,8 +579,8 @@ locate =
 -- 1600
 -- >>> _inner 71
 -- 1750
-_inner :: Int -> Maybe Int
-_inner x = 
+inner :: Int -> Maybe Int
+inner x = 
   if x < 89
     then Just (25*x-25)
     else Nothing
@@ -871,14 +589,17 @@ _inner x =
 ---- Moment Envelope
 
 
-_polygon1 = [(120.5, 2550), (71, 1500), (52.5,1500), (68,1950), (104.5, 2550)]
-_polygon2 = [(61, 1500), (89, 2200), (82.5, 2200), (68,1950)]
+polygon1 :: [(Double, Double)]
+polygon1 = [(120.5, 2550), (71, 1500), (52.5,1500), (68,1950), (104.5, 2550)]
+
+polygon2 :: [(Double, Double)]
+polygon2 = [(61, 1500), (89, 2200), (82.5, 2200), (68,1950)]
 
 
 myaxis :: Axis B V2 Double
 myaxis = r2Axis &~ do
-  linePlot' _polygon1
-  linePlot' _polygon2
+  linePlot' polygon1
+  linePlot' polygon2
 
 main :: IO ()
 main = r2AxisMain myaxis
