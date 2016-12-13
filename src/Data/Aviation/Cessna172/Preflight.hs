@@ -350,6 +350,14 @@ totalArm ::
 totalArm t c r =
   totalCapacityWith (\b y -> y * ((^. armmeasure) . (r ^. _Wrapped) $ b)) t c
 
+totalCapacityAndArm ::
+  Allarmtypes a
+  -> GetCapacity a
+  -> GetArm a
+  -> (Rational, Rational)
+totalCapacityAndArm a c r =
+  (totalCapacity a c, totalArm a c r)
+
 capacityLimits ::
   Limits a
   -> GetCapacity a
