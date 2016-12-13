@@ -34,6 +34,7 @@ library
                     , plots
                     , hgeometry
                     , containers
+                    , fixed-vector
                     
   ghc-options:
                     -Wall

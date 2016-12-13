@@ -3,19 +3,26 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
+import Data.Foldable(toList)
 import Data.Set(Set)
-import qualified Data.Set as Set(singleton, fromList)
+import qualified Data.Set as Set(singleton, fromList, empty, map)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Prism', _Wrapped, makeWrapped, makeClassy, prism', (&~), (^.))
+import Control.Lens(Prism', _Wrapped, makeWrapped, makeClassy, prism', (&~), (^.), (&))
+import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
-import Data.Geometry.Point(point2)
-import Data.Geometry.Polygon(SimplePolygon, inPolygon, fromPoints)
+import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
+import Data.Geometry.Point(Point(Point), point2)
+import Data.Geometry.Polygon(SimplePolygon, inPolygon, fromPoints, outerBoundaryEdges)
+import Data.Geometry.Vector(Arity, Vector(Vector))
+import qualified Data.Vector.Fixed as FV(length)
 import Data.Ext(ext)
 
 {-
@@ -34,6 +41,26 @@ data Allarmtypes a =
   deriving (Eq, Ord, Show)
 
 makeWrapped ''Allarmtypes
+
+oneAllarmtypes ::
+  a
+  -> Allarmtypes a
+oneAllarmtypes =
+  Allarmtypes . Set.singleton
+
+mapAllarmtypes ::
+  Ord b =>
+  (a -> b)
+  -> Allarmtypes a
+  -> Allarmtypes b
+mapAllarmtypes f (Allarmtypes x) =
+  Allarmtypes (Set.map f x)
+
+instance Ord a => Monoid (Allarmtypes a) where
+  mempty =
+    Allarmtypes Set.empty
+  Allarmtypes a `mappend` Allarmtypes b =
+    Allarmtypes (a `mappend` b)
 
 newtype Armname =
   Armname
@@ -93,6 +120,14 @@ onelimit ::
 onelimit =
   Limit . Set.singleton
 
+mapLimit ::
+  Ord b =>
+  (a -> b)
+  -> Limit a
+  -> Limit b
+mapLimit f (Limit x z) =
+  Limit (Set.map f x) z
+
 newtype Limits a =
   Limits
     [Limit a]
@@ -100,11 +135,32 @@ newtype Limits a =
 
 makeWrapped ''Limits
 
+instance Monoid (Limits a) where
+  mempty =
+    Limits mempty
+  Limits a `mappend` Limits b =
+    Limits (a `mappend` b)
+
+onelimits ::
+  a
+  -> Capacity
+  -> Limits a
+onelimits a c =
+  Limits [onelimit a c]
+
 armnorange :: 
   Rational
   -> Arm
 armnorange n =
   Arm n Nothing
+
+mapLimits ::
+  Ord b =>
+  (a -> b)
+  -> Limits a
+  -> Limits b
+mapLimits f (Limits x) =
+  Limits (map (mapLimit f) x)
 
 ----
 
@@ -140,6 +196,101 @@ getarmnameC172KnownArmType =
             )
     )
 
+
+getarmC172KnownArmType ::
+  GetArm C172KnownArmType
+getarmC172KnownArmType =
+  GetArm (
+      \a -> case a of
+              FrontSeat ->
+                Arm 37 (Just (34, 46))
+              RearSeat ->
+                armnorange 73
+              Fuel ->
+                armnorange 48
+              BaggageA ->
+                Arm 95 (Just (82, 1808))
+              BaggageB ->
+                Arm 123 (Just (108, 142))
+          
+    )
+
+limitsC172KnownArmType ::
+  Limits C172KnownArmType
+limitsC172KnownArmType =
+  Limits
+    [
+      Limit (Set.singleton BaggageA) (Capacity 120)
+    , Limit (Set.singleton BaggageB) (Capacity 50)
+    , Limit (Set.fromList [BaggageA, BaggageB]) (Capacity 120)
+    , Limit (Set.singleton Fuel) (Capacity 336)
+    ]
+
+----
+
+data C172ArmType =
+  Aircraft
+  | KnownC172ArmType C172KnownArmType
+  deriving (Eq, Ord, Show)
+
+allarmtypesC172ArmType ::
+  Allarmtypes C172ArmType
+allarmtypesC172ArmType =
+  oneAllarmtypes Aircraft `mappend` mapAllarmtypes KnownC172ArmType allarmtypesC172KnownArmType
+
+
+getarmnameC172ArmType ::
+  GetArmname C172ArmType
+getarmnameC172ArmType =
+  GetArmname (
+    \a ->
+      case a of
+        KnownC172ArmType t ->
+          t & getarmnameC172KnownArmType ^. _Wrapped
+        Aircraft ->
+          Armname "aircraft"
+  )
+
+getarmC172ArmType ::
+  Arm -- BEW arm
+  -> GetArm C172ArmType
+getarmC172ArmType x =
+  GetArm (
+      \a -> case a of
+              KnownC172ArmType t ->
+                t & getarmC172KnownArmType ^. _Wrapped
+              Aircraft ->
+                x
+    )
+
+limitsC172ArmType ::
+  Limits C172ArmType
+limitsC172ArmType =
+  onelimits Aircraft (Capacity 2550) `mappend` mapLimits KnownC172ArmType limitsC172KnownArmType
+
+----
+
+vhlsecapacityArmType ::
+  GetCapacity C172KnownArmType
+  -> GetCapacity C172ArmType
+vhlsecapacityArmType k =
+  GetCapacity (
+      \a -> case a of
+              KnownC172ArmType t ->
+                t & k ^. _Wrapped
+              Aircraft ->
+                Capacity 1691.6
+    )
+  
+vhlsearmArmType ::
+  GetArm C172ArmType
+vhlsearmArmType =
+  getarmC172ArmType (armnorange 40.600)
+
+----
+
+
+-- test data
 getcapacityC172KnownArmType ::
   GetCapacity C172KnownArmType
 getcapacityC172KnownArmType =
@@ -159,34 +310,18 @@ getcapacityC172KnownArmType =
             )
     )
 
-getarmC172KnownArmType ::
-  GetArm C172KnownArmType
-getarmC172KnownArmType =
-  GetArm (
+-- test data
+getcapacityC172ArmType ::
+  Capacity -- BEW
+  -> GetCapacity C172ArmType
+getcapacityC172ArmType x =
+  GetCapacity (
       \a -> case a of
-              FrontSeat ->
-                Arm 37 (Just (34, 46))
-              RearSeat ->
-                armnorange 73
-              Fuel ->
-                armnorange 288
-              BaggageA ->
-                Arm 95 (Just (82, 1808))
-              BaggageB ->
-                Arm 123 (Just (108, 142))
-          
+              KnownC172ArmType t ->
+                t & getcapacityC172KnownArmType ^. _Wrapped
+              Aircraft ->
+                x
     )
-
-limitsC172KnownArmType ::
-  Limits C172KnownArmType
-limitsC172KnownArmType =
-  Limits
-    [
-      Limit (Set.singleton BaggageA) (Capacity 120)
-    , Limit (Set.singleton BaggageB) (Capacity 50)
-    , Limit (Set.fromList [BaggageA, BaggageB]) (Capacity 120)
-    , Limit (Set.singleton Fuel) (Capacity 336)
-    ]
 
 ----
 
@@ -222,6 +357,7 @@ capacityLimits ::
 capacityLimits (Limits x) (GetCapacity c) =
   Limits ((\(Limit s (Capacity d)) -> let z = foldl (\a b -> let Capacity y = c b in a + y) 0 s in Limit s (Capacity (d - z))) <$> x)
 
+----
 
 c172NormalCategory :: 
   SimplePolygon () Rational
@@ -230,8 +366,9 @@ c172NormalCategory =
     [
       point2 120.5 2550
     , point2 71 1500
-    , point2 52.5 1500
-    , point2 68 1950
+    , point2 61 1500
+    , point2 89 2200
+    , point2 82.5 2200
     , point2 104.5 2550
     ]
 
@@ -244,7 +381,24 @@ c172UtilityCategory =
     , point2 89 2200
     , point2 82.5 2200
     , point2 68 1950
+    , point2 52.5 1500
     ]
+
+testPoint ::
+  Point 2 Rational
+testPoint = 
+  point2 70 2100
+  
+testPoint2 ::
+  Point 2 Rational
+testPoint2 = 
+  point2 50 2050
+
+nearestPoints ::
+  CSeq (Rational, Point 2 Rational)
+nearestPoints =
+  sqDistanceToArg testPoint2 . supportingLine <$> outerBoundaryEdges c172UtilityCategory
+
 
 {-
 
@@ -603,3 +757,24 @@ myaxis = r2Axis &~ do
 
 main :: IO ()
 main = r2AxisMain myaxis
+
+----
+
+showRationalPoint ::
+  (Arity d) => 
+  Point d Rational
+  -> String
+showRationalPoint (Point (Vector v)) =
+  concat
+    [
+      "Point"
+    , show (FV.length v)
+    , " "
+    , show (map rational2Double (toList v))
+    ]
+
+rational2Double ::
+  Rational
+  -> Double
+rational2Double = 
+  fromRational
