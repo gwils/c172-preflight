@@ -403,10 +403,28 @@ testPoint2 =
   point2 50 2050
 
 nearestPoints ::
-  CSeq (Rational, Point 2 Rational)
-nearestPoints =
-  sqDistanceToArg testPoint2 . supportingLine <$> outerBoundaryEdges c172UtilityCategory
+  SimplePolygon () Rational
+  -> Point 2 Rational
+  -> CSeq (Rational, Point 2 Rational)
+nearestPoints y p =
+  sqDistanceToArg p . supportingLine <$> outerBoundaryEdges y
 
+nearestPointsCapacityAndArm ::
+  SimplePolygon () Rational
+  -> Allarmtypes a
+  -> GetCapacity a
+  -> GetArm a
+  -> CSeq (Rational, Point 2 Rational)
+nearestPointsCapacityAndArm y a c r =
+  nearestPoints y (totalCapacityAndArm a c r)
+
+nearestPointsC172UtilityCategory ::
+  Allarmtypes a
+  -> GetCapacity a
+  -> GetArm a
+  -> CSeq (Rational, Point 2 Rational)
+nearestPointsC172UtilityCategory =
+  nearestPointsCapacityAndArm c172UtilityCategory
 
 {-
 
