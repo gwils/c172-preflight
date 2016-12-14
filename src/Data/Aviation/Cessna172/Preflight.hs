@@ -358,6 +358,14 @@ totalCapacityAndArm ::
 totalCapacityAndArm a c r =
   (totalCapacity a c, totalArm a c r)
 
+totalCapacityAndArm2 ::
+  Allarmtypes a
+  -> GetCapacity a
+  -> GetArm a
+  -> Point 2 Rational
+totalCapacityAndArm2 a c r =
+  point2 (totalCapacity a c) (totalArm a c r)
+
 capacityLimits ::
   Limits a
   -> GetCapacity a
@@ -385,7 +393,7 @@ c172UtilityCategory ::
 c172UtilityCategory =
   fromPoints . map ext $
     [
-      point2 61 1500
+      point2 61 1500    
     , point2 89 2200
     , point2 82.5 2200
     , point2 68 1950
