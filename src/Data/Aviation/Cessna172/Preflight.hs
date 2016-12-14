@@ -354,16 +354,8 @@ totalCapacityAndArm ::
   Allarmtypes a
   -> GetCapacity a
   -> GetArm a
-  -> (Rational, Rational)
-totalCapacityAndArm a c r =
-  (totalCapacity a c, totalArm a c r)
-
-totalCapacityAndArm2 ::
-  Allarmtypes a
-  -> GetCapacity a
-  -> GetArm a
   -> Point 2 Rational
-totalCapacityAndArm2 a c r =
+totalCapacityAndArm a c r =
   point2 (totalCapacity a c) (totalArm a c r)
 
 capacityLimits ::
