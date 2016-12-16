@@ -13,7 +13,7 @@ import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Prism', makeClassy, prism', (&~))
+import Control.Lens(Traversal', Prism', makeClassy, makeWrapped, prism', (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -22,7 +22,6 @@ import Data.Geometry.Polygon(SimplePolygon, inPolygon, fromPoints, outerBoundary
 import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
 import Data.Ext(ext)
-
 
 data Arm =
   Arm {
@@ -36,6 +35,14 @@ data Arm =
 
 makeClassy ''Arm
 
+class Arms a where
+  arms ::
+    Traversal' a Arm
+
+instance Arms Arm where
+  arms =
+    id
+    
 armnorange :: 
   Int
   -> Maybe String
@@ -43,16 +50,13 @@ armnorange ::
 armnorange n m =
   Arm n Nothing m
 
-
-data AircraftArm =
-  AircraftArm {
-    _aeroplane ::
-      Arm
-  , _frontseat ::
-      Arm
-  , _fuel ::
+data C172Arm =
+  C172Arm {
+    _frontseat ::
       Arm
   , _rearseat ::
+      Arm
+  , _fuel ::
       Arm
   , _baggagea ::
       Arm
@@ -61,18 +65,51 @@ data AircraftArm =
   }
   deriving (Eq, Ord, Show)
 
-c172arm ::
-  Arm -- aeroplane arm
-  -> AircraftArm
-c172arm a =
-  AircraftArm
-    a
+makeClassy ''C172Arm
+
+instance Arms C172Arm where
+  arms k (C172Arm t r f a b) =
+    C172Arm <$> k t <*> k r <*> k f <*> k a <*> k b
+
+c172R ::
+  C172Arm
+c172R =
+  C172Arm
     (Arm 37 (Just (34, 46)) (Just "front seat"))
     (armnorange 48 (Just "fuel"))
     (armnorange 73 (Just "rear seat"))
     (Arm 95 (Just (82, 108)) (Just "baggage A"))
     (Arm 123 (Just (108, 142)) (Just "baggage B"))
 
+data Weight =
+  Weight
+    Rational -- todo units
+  deriving (Eq, Ord, Show)
+
+makeWrapped ''Weight
+
+data ArmWeight =
+  ArmWeight {
+    _armArmWeight ::
+      Arm
+  , _armweight ::
+      Weight
+  } deriving (Eq, Ord, Show)
+
+makeClassy ''ArmWeight
+
+instance Arms ArmWeight where
+  arms =
+    armArmWeight . arms
+
+class ArmWeights a where
+  armweights ::
+    Traversal' a ArmWeight
+
+instance ArmWeights ArmWeight where
+  armweights =
+    id
+    
 -- baggage "A" maximum 120lb
 -- baggage "B" maximum 50lb
 -- maximum overall baggage 120lb
@@ -95,6 +132,7 @@ data AircraftWeight =
   deriving (Eq, Ord, Show)
 
 {-
+
 limitsC172KnownArmType ::
   Limits C172KnownArmType
 limitsC172KnownArmType =
@@ -106,8 +144,6 @@ limitsC172KnownArmType =
     , Limit (Set.singleton Fuel) (Capacity 336)
     ]
 -}
-
-----
 
 ----
 
@@ -229,8 +265,8 @@ testinpolygon =
 
 ---- TODR/LDR
 
-data TakeOffDistanceAltitude =
-  TakeOffDistanceAltitude {
+data C172ShortFieldChart =
+  C172ShortFieldChart {
     _temp00 ::
       Int
   , _temp10 ::
@@ -244,28 +280,28 @@ data TakeOffDistanceAltitude =
   }
   deriving (Eq, Ord, Show)
 
-makeClassy ''TakeOffDistanceAltitude
+makeClassy ''C172ShortFieldChart
 
 data TakeOffDistance =
   TakeOffDistance {
     _pa0000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa1000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa2000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa3000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa4000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa5000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa6000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa7000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   , _pa8000 ::
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
   }
   deriving (Eq, Ord, Show)
 
@@ -276,7 +312,7 @@ c172s_2550lbs_groundroll_takeoff ::
 c172s_2550lbs_groundroll_takeoff =
   TakeOffDistance
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         860
         925
         995
@@ -284,7 +320,7 @@ c172s_2550lbs_groundroll_takeoff =
         1150
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         940
         1010
         1090
@@ -292,7 +328,7 @@ c172s_2550lbs_groundroll_takeoff =
         1260
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1025
         1110
         1195
@@ -300,7 +336,7 @@ c172s_2550lbs_groundroll_takeoff =
         1380
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1125
         1215
         1310
@@ -308,7 +344,7 @@ c172s_2550lbs_groundroll_takeoff =
         1515
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1235
         1335
         1440
@@ -316,7 +352,7 @@ c172s_2550lbs_groundroll_takeoff =
         1660
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1355
         1465
         1585
@@ -324,7 +360,7 @@ c172s_2550lbs_groundroll_takeoff =
         1825
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1495
         1615
         1745
@@ -332,7 +368,7 @@ c172s_2550lbs_groundroll_takeoff =
         2010
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1645
         1785
         1920
@@ -340,12 +376,243 @@ c172s_2550lbs_groundroll_takeoff =
         2215
     )
     (
-      TakeOffDistanceAltitude
+      C172ShortFieldChart
         1820
         1970
         2120
         2280
         2450
+    )
+
+c172s_2550lbs_50ft_takeoff ::
+  TakeOffDistance
+c172s_2550lbs_50ft_takeoff =
+  TakeOffDistance
+    (
+      C172ShortFieldChart
+        1465
+        1575
+        1690
+        1810
+        1945
+    )
+    (
+      C172ShortFieldChart
+        1600
+        1720
+        1850
+        1990
+        2135
+    )
+    (
+      C172ShortFieldChart
+        1755
+        1890
+        2035
+        2190
+        2355
+    )
+    (
+      C172ShortFieldChart
+        1925
+        2080
+        2240
+        2420
+        2605
+    )
+    (
+      C172ShortFieldChart
+        2120
+        2295
+        2480
+        2685
+        2880
+    )
+    (
+      C172ShortFieldChart
+        2345
+        2545
+        2755
+        2975
+        3205
+    )
+    (
+      C172ShortFieldChart
+        2605
+        2830
+        3075
+        3320
+        3585
+    )
+    (
+      C172ShortFieldChart
+        2910
+        3170
+        3440
+        3730
+        4045
+    )
+    (
+      C172ShortFieldChart
+        3265
+        3575
+        3880
+        4225
+        4615
+    )
+
+c172s_2550lbs_groundroll_landing ::
+  TakeOffDistance
+c172s_2550lbs_groundroll_landing =
+  TakeOffDistance
+    (
+      C172ShortFieldChart
+        545
+        565
+        585
+        605
+        625
+    )
+    (
+      C172ShortFieldChart
+        565
+        585
+        605
+        625
+        650
+    )
+    (
+      C172ShortFieldChart
+        585
+        610
+        630
+        650
+        670
+    )
+    (
+      C172ShortFieldChart
+        610
+        630
+        655
+        675
+        695
+    )
+    (
+      C172ShortFieldChart
+        630
+        655
+        675
+        700
+        725
+    )
+    (
+      C172ShortFieldChart
+        655
+        680
+        705
+        725
+        750
+    )
+    (
+      C172ShortFieldChart
+        680
+        705
+        730
+        755
+        780
+    )
+    (
+      C172ShortFieldChart
+        705
+        730
+        760
+        785
+        810
+    )
+    (
+      C172ShortFieldChart
+        735
+        760
+        790
+        815
+        840
+    )
+
+c172s_2550lbs_50ft_landing ::
+  TakeOffDistance
+c172s_2550lbs_50ft_landing =
+  TakeOffDistance
+    (
+      C172ShortFieldChart
+        1290
+        1320
+        1350
+        1380
+        1415
+    )
+    (
+      C172ShortFieldChart
+        1320
+        1350
+        1385
+        1420
+        1450
+    )
+    (
+      C172ShortFieldChart
+        1355
+        1385
+        1420
+        1455
+        1490
+    )
+    (
+      C172ShortFieldChart
+        1385
+        1425
+        1460
+        1495
+        1530
+    )
+    (
+      C172ShortFieldChart
+        1425
+        1460
+        1495
+        1535
+        1570
+    )
+    (
+      C172ShortFieldChart
+        1460
+        1500
+        1535
+        1575
+        1615
+    )
+    (
+      C172ShortFieldChart
+        1500
+        1540
+        1580
+        1620
+        1660
+    )
+    (
+      C172ShortFieldChart
+        1545
+        1585
+        1625
+        1665
+        1705
+    )
+    (
+      C172ShortFieldChart
+        1585
+        1630
+        1670
+        1715
+        1755
     )
 
 newtype PressureAltitude =
@@ -398,7 +665,7 @@ instance AsTemperature Int where
 intervalsPressureAltitude ::
   PressureAltitude
   -> TakeOffDistance
-  -> (TakeOffDistanceAltitude, TakeOffDistanceAltitude, Int)
+  -> (C172ShortFieldChart, C172ShortFieldChart, Int)
 intervalsPressureAltitude (PressureAltitude n) (TakeOffDistance _0 _1 _2 _3 _4 _5 _6 _7 _8) =
   let (d, m) =
         n `divMod` 1000
@@ -428,9 +695,9 @@ intervalsPressureAltitude (PressureAltitude n) (TakeOffDistance _0 _1 _2 _3 _4 _
 
 intervalsTemperature ::
   Temperature
-  -> TakeOffDistanceAltitude
+  -> C172ShortFieldChart
   -> (Int, Int, Int)
-intervalsTemperature (Temperature n) (TakeOffDistanceAltitude _0 _1 _2 _3 _4) =
+intervalsTemperature (Temperature n) (C172ShortFieldChart _0 _1 _2 _3 _4) =
   let (d, m) =
         n `divMod` 10
       (r, s) =
