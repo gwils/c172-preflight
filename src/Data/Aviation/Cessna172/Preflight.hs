@@ -10,12 +10,10 @@ module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
 import Data.Foldable(toList)
-import Data.Set(Set)
-import qualified Data.Set as Set(singleton, fromList, empty, map)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Prism', _Wrapped, makeWrapped, makeClassy, prism', (&~), (^.), (&))
+import Control.Lens(Prism', makeClassy, prism', (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -25,196 +23,78 @@ import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
 import Data.Ext(ext)
 
-{-
-
-Set a -- all arms
-(a -> Name) -- names
-(a -> Capacity) -- weights/volumes
-(a -> Arm) -- arms
-[Set a, Capacity] -- limits
-
--}
-
-data Allarmtypes a =
-  Allarmtypes
-    (Set a)
-  deriving (Eq, Ord, Show)
-
-makeWrapped ''Allarmtypes
-
-oneAllarmtypes ::
-  a
-  -> Allarmtypes a
-oneAllarmtypes =
-  Allarmtypes . Set.singleton
-
-mapAllarmtypes ::
-  Ord b =>
-  (a -> b)
-  -> Allarmtypes a
-  -> Allarmtypes b
-mapAllarmtypes f (Allarmtypes x) =
-  Allarmtypes (Set.map f x)
-
-instance Ord a => Monoid (Allarmtypes a) where
-  mempty =
-    Allarmtypes Set.empty
-  Allarmtypes a `mappend` Allarmtypes b =
-    Allarmtypes (a `mappend` b)
-
-newtype Armname =
-  Armname
-    String -- todo
-  deriving (Eq, Ord, Show)
-
-makeWrapped ''Armname
-
-newtype GetArmname a =
-  GetArmname
-    (a -> Armname)
-
-makeWrapped ''GetArmname
-
-data Capacity =
-  Capacity
-    Rational -- todo, assume lbs for now
-  deriving (Eq, Ord, Show)
-
-makeClassy ''Capacity
-
-newtype GetCapacity a =
-  GetCapacity
-    (a -> Capacity)
-
-makeWrapped ''GetCapacity
 
 data Arm =
   Arm {
     _armmeasure ::
-      Rational -- inches
+      Int -- inches
   , _armrange ::
-      Maybe (Rational, Rational)
-  }
-  deriving (Eq, Ord, Show)
+      Maybe (Int, Int)
+  , _name ::
+      Maybe String
+  } deriving (Eq, Ord, Show)
 
 makeClassy ''Arm
 
-newtype GetArm a =
-  GetArm
-    (a -> Arm)
-
-makeWrapped ''GetArm
-
-data Limit a =
-  Limit
-    (Set a)
-    Capacity
-  deriving (Eq, Ord, Show)
-
-makeClassy ''Limit
-
-onelimit ::
-  a
-  -> Capacity
-  -> Limit a
-onelimit =
-  Limit . Set.singleton
-
-mapLimit ::
-  Ord b =>
-  (a -> b)
-  -> Limit a
-  -> Limit b
-mapLimit f (Limit x z) =
-  Limit (Set.map f x) z
-
-newtype Limits a =
-  Limits
-    [Limit a]
-  deriving (Eq, Ord, Show)
-
-makeWrapped ''Limits
-
-instance Monoid (Limits a) where
-  mempty =
-    Limits mempty
-  Limits a `mappend` Limits b =
-    Limits (a `mappend` b)
-
-onelimits ::
-  a
-  -> Capacity
-  -> Limits a
-onelimits a c =
-  Limits [onelimit a c]
-
 armnorange :: 
-  Rational
+  Int
+  -> Maybe String
   -> Arm
-armnorange n =
-  Arm n Nothing
+armnorange n m =
+  Arm n Nothing m
 
-mapLimits ::
-  Ord b =>
-  (a -> b)
-  -> Limits a
-  -> Limits b
-mapLimits f (Limits x) =
-  Limits (map (mapLimit f) x)
 
-----
-
-data C172KnownArmType =
-  FrontSeat
-  | RearSeat
-  | Fuel
-  | BaggageA
-  | BaggageB
+data AircraftArm =
+  AircraftArm {
+    _aeroplane ::
+      Arm
+  , _frontseat ::
+      Arm
+  , _fuel ::
+      Arm
+  , _rearseat ::
+      Arm
+  , _baggagea ::
+      Arm
+  , _baggageb ::
+      Arm
+  }
   deriving (Eq, Ord, Show)
 
-allarmtypesC172KnownArmType ::
-  Allarmtypes C172KnownArmType
-allarmtypesC172KnownArmType =
-  Allarmtypes (Set.fromList [FrontSeat, RearSeat, Fuel, BaggageA, BaggageB])
+c172arm ::
+  Arm -- aeroplane arm
+  -> AircraftArm
+c172arm a =
+  AircraftArm
+    a
+    (Arm 37 (Just (34, 46)) (Just "front seat"))
+    (armnorange 48 (Just "fuel"))
+    (armnorange 73 (Just "rear seat"))
+    (Arm 95 (Just (82, 108)) (Just "baggage A"))
+    (Arm 123 (Just (108, 142)) (Just "baggage B"))
 
-getarmnameC172KnownArmType ::
-  GetArmname C172KnownArmType
-getarmnameC172KnownArmType =
-  GetArmname (
-      \a -> Armname (
-              case a of
-                FrontSeat -> 
-                  "front seat"
-                RearSeat -> 
-                  "rear seat"
-                Fuel -> 
-                  "fuel"
-                BaggageA -> 
-                  "baggage A"
-                BaggageB -> 
-                  "baggage B"
-            )
-    )
+-- baggage "A" maximum 120lb
+-- baggage "B" maximum 50lb
+-- maximum overall baggage 120lb
 
+data AircraftWeight =
+  AircraftWeight {
+    _bew ::
+      Double
+  , _frontseatweight ::
+      Double -- pounds
+  , _fuelweight ::
+      Double -- gallons
+  , _rearseatweight ::
+      Double
+  , _baggageaweight ::
+      Double
+  , _baggagebweight ::
+      Double
+  }
+  deriving (Eq, Ord, Show)
 
-getarmC172KnownArmType ::
-  GetArm C172KnownArmType
-getarmC172KnownArmType =
-  GetArm (
-      \a -> case a of
-              FrontSeat ->
-                Arm 37 (Just (34, 46))
-              RearSeat ->
-                armnorange 73
-              Fuel ->
-                armnorange 48
-              BaggageA ->
-                Arm 95 (Just (82, 1808))
-              BaggageB ->
-                Arm 123 (Just (108, 142))
-          
-    )
-
+{-
 limitsC172KnownArmType ::
   Limits C172KnownArmType
 limitsC172KnownArmType =
@@ -225,51 +105,13 @@ limitsC172KnownArmType =
     , Limit (Set.fromList [BaggageA, BaggageB]) (Capacity 120)
     , Limit (Set.singleton Fuel) (Capacity 336)
     ]
+-}
 
 ----
 
-data C172ArmType =
-  Aircraft
-  | KnownC172ArmType C172KnownArmType
-  deriving (Eq, Ord, Show)
-
-allarmtypesC172ArmType ::
-  Allarmtypes C172ArmType
-allarmtypesC172ArmType =
-  oneAllarmtypes Aircraft `mappend` mapAllarmtypes KnownC172ArmType allarmtypesC172KnownArmType
-
-
-getarmnameC172ArmType ::
-  GetArmname C172ArmType
-getarmnameC172ArmType =
-  GetArmname (
-    \a ->
-      case a of
-        KnownC172ArmType t ->
-          t & getarmnameC172KnownArmType ^. _Wrapped
-        Aircraft ->
-          Armname "aircraft"
-  )
-
-getarmC172ArmType ::
-  Arm -- BEW arm
-  -> GetArm C172ArmType
-getarmC172ArmType x =
-  GetArm (
-      \a -> case a of
-              KnownC172ArmType t ->
-                t & getarmC172KnownArmType ^. _Wrapped
-              Aircraft ->
-                x
-    )
-
-limitsC172ArmType ::
-  Limits C172ArmType
-limitsC172ArmType =
-  onelimits Aircraft (Capacity 2550) `mappend` mapLimits KnownC172ArmType limitsC172KnownArmType
-
 ----
 
+{-
 vhlsecapacityArmType ::
   GetCapacity C172KnownArmType
   -> GetCapacity C172ArmType
@@ -287,10 +129,6 @@ vhlsearmArmType ::
 vhlsearmArmType =
   getarmC172ArmType (armnorange 40.600)
 
-----
-
-
--- test data
 getcapacityC172KnownArmType ::
   GetCapacity C172KnownArmType
 getcapacityC172KnownArmType =
@@ -309,61 +147,7 @@ getcapacityC172KnownArmType =
                   2.20462
             )
     )
-
--- test data
-getcapacityC172ArmType ::
-  Capacity -- BEW
-  -> GetCapacity C172ArmType
-getcapacityC172ArmType x =
-  GetCapacity (
-      \a -> case a of
-              KnownC172ArmType t ->
-                t & getcapacityC172KnownArmType ^. _Wrapped
-              Aircraft ->
-                x
-    )
-
-----
-
-totalCapacityWith  ::
-  Num a =>
-  (t -> Rational -> a)
-  -> Allarmtypes t
-  -> GetCapacity t
-  -> a
-totalCapacityWith f (Allarmtypes x) (GetCapacity c) =
-  foldl (\a b -> let Capacity y = c b
-                 in  a + f b y) 0 x
-
-totalCapacity ::
-  Allarmtypes a
-  -> GetCapacity a
-  -> Rational
-totalCapacity =
-  totalCapacityWith (const id)
-
-totalArm ::
-  Allarmtypes a
-  -> GetCapacity a
-  -> GetArm a
-  -> Rational
-totalArm t c r =
-  totalCapacityWith (\b y -> y * ((^. armmeasure) . (r ^. _Wrapped) $ b)) t c
-
-totalCapacityAndArm ::
-  Allarmtypes a
-  -> GetCapacity a
-  -> GetArm a
-  -> Point 2 Rational
-totalCapacityAndArm a c r =
-  point2 (totalCapacity a c) (totalArm a c r)
-
-capacityLimits ::
-  Limits a
-  -> GetCapacity a
-  -> Limits a
-capacityLimits (Limits x) (GetCapacity c) =
-  Limits ((\(Limit s (Capacity d)) -> let z = foldl (\a b -> let Capacity y = c b in a + y) 0 s in Limit s (Capacity (d - z))) <$> x)
+-}
 
 ----
 
@@ -392,39 +176,12 @@ c172UtilityCategory =
     , point2 52.5 1500
     ]
 
-testPoint ::
-  Point 2 Rational
-testPoint = 
-  point2 70 2100
-  
-testPoint2 ::
-  Point 2 Rational
-testPoint2 = 
-  point2 50 2050
-
 nearestPoints ::
   SimplePolygon () Rational
   -> Point 2 Rational
   -> CSeq (Rational, Point 2 Rational)
 nearestPoints y p =
   sqDistanceToArg p . supportingLine <$> outerBoundaryEdges y
-
-nearestPointsCapacityAndArm ::
-  SimplePolygon () Rational
-  -> Allarmtypes a
-  -> GetCapacity a
-  -> GetArm a
-  -> CSeq (Rational, Point 2 Rational)
-nearestPointsCapacityAndArm y a c r =
-  nearestPoints y (totalCapacityAndArm a c r)
-
-nearestPointsC172UtilityCategory ::
-  Allarmtypes a
-  -> GetCapacity a
-  -> GetArm a
-  -> CSeq (Rational, Point 2 Rational)
-nearestPointsC172UtilityCategory =
-  nearestPointsCapacityAndArm c172UtilityCategory
 
 {-
 
