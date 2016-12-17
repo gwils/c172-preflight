@@ -13,7 +13,7 @@ import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Traversal', Traversal, Prism', makeClassy, makeWrapped, prism', lens, (&~))
+import Control.Lens(Traversal, Prism', makeClassy, makeWrapped, prism', lens, (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -35,14 +35,6 @@ data Arm =
 
 makeClassy ''Arm
 
-class Arms a where
-  arms ::
-    Traversal' a Arm
-
-instance Arms Arm where
-  arms =
-    id
-    
 armnorange :: 
   Int
   -> Maybe String
@@ -67,18 +59,14 @@ data C172 a =
 
 makeClassy ''C172
 
-c172arms ::
-  Traversal (C172 a) (C172 b) a b
-c172arms k (C172 t r f a b) =
-  C172 <$> k t <*> k r <*> k f <*> k a <*> k b
-
 instance Functor C172 where
   fmap k (C172 t r f a b) =
     C172 (k t) (k r) (k f) (k a) (k b)
 
-instance Arms (C172 Arm) where
-  arms k (C172 t r f a b) =
-    C172 <$> k t <*> k r <*> k f <*> k a <*> k b
+c172arms ::
+  Traversal (C172 a) (C172 b) a b
+c172arms k (C172 t r f a b) =
+  C172 <$> k t <*> k r <*> k f <*> k a <*> k b
 
 data Weight =
   Weight
@@ -88,23 +76,13 @@ data Weight =
 makeWrapped ''Weight
 makeClassy ''Weight
 
-class Weights a where
-  weights ::
-    Traversal' a Weight
-
-instance Weights Weight where
-  weights =
-    id
-
-instance Weights (C172 Weight) where
-  weights k (C172 t r f a b) =
-    C172 <$> k t <*> k r <*> k f <*> k a <*> k b
-
 data ArmWeight =
   ArmWeight
     Arm
     Weight
   deriving (Eq, Ord, Show)
+
+makeClassy ''ArmWeight
 
 instance HasArm ArmWeight where
   arm =
@@ -117,14 +95,6 @@ instance HasWeight ArmWeight where
     lens
       (\(ArmWeight _ w) -> w)
       (\(ArmWeight a _) w -> ArmWeight a w)
-
-instance Arms ArmWeight where
-  arms f (ArmWeight a w) =
-    (\a' -> ArmWeight a' w) <$> f a
-    
-instance Weights ArmWeight where
-  weights f (ArmWeight a w) =
-    (\w' -> ArmWeight a w') <$> f w
 
 c172Arms ::
   C172 Arm
