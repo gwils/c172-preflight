@@ -13,7 +13,7 @@ import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Traversal', Prism', makeClassy, makeWrapped, prism', (&~))
+import Control.Lens(Traversal', Traversal, Prism', makeClassy, makeWrapped, prism', lens, (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -50,27 +50,95 @@ armnorange ::
 armnorange n m =
   Arm n Nothing m
 
-data C172Arm =
-  C172Arm {
+data C172 a =
+  C172 {
     _frontseat ::
-      Arm
+      a
   , _rearseat ::
-      Arm
+      a
   , _fuel ::
-      Arm
+      a
   , _baggagea ::
-      Arm
+      a
   , _baggageb ::
-      Arm
+      a
   }
   deriving (Eq, Ord, Show)
 
-makeClassy ''C172Arm
+makeClassy ''C172
 
-instance Arms C172Arm where
-  arms k (C172Arm t r f a b) =
-    C172Arm <$> k t <*> k r <*> k f <*> k a <*> k b
+c172arms ::
+  Traversal (C172 a) (C172 b) a b
+c172arms k (C172 t r f a b) =
+  C172 <$> k t <*> k r <*> k f <*> k a <*> k b
 
+instance Functor C172 where
+  fmap k (C172 t r f a b) =
+    C172 (k t) (k r) (k f) (k a) (k b)
+
+instance Arms (C172 Arm) where
+  arms k (C172 t r f a b) =
+    C172 <$> k t <*> k r <*> k f <*> k a <*> k b
+
+data Weight =
+  Weight
+    Rational -- todo units
+  deriving (Eq, Ord, Show)
+
+makeWrapped ''Weight
+makeClassy ''Weight
+
+class Weights a where
+  weights ::
+    Traversal' a Weight
+
+instance Weights Weight where
+  weights =
+    id
+
+instance Weights (C172 Weight) where
+  weights k (C172 t r f a b) =
+    C172 <$> k t <*> k r <*> k f <*> k a <*> k b
+
+data ArmWeight =
+  ArmWeight
+    Arm
+    Weight
+  deriving (Eq, Ord, Show)
+
+instance HasArm ArmWeight where
+  arm =
+    lens
+      (\(ArmWeight a _) -> a)
+      (\(ArmWeight _ w) a -> ArmWeight a w)
+
+instance HasWeight ArmWeight where
+  weight =
+    lens
+      (\(ArmWeight _ w) -> w)
+      (\(ArmWeight a _) w -> ArmWeight a w)
+
+instance Arms ArmWeight where
+  arms f (ArmWeight a w) =
+    (\a' -> ArmWeight a' w) <$> f a
+    
+instance Weights ArmWeight where
+  weights f (ArmWeight a w) =
+    (\w' -> ArmWeight a w') <$> f w
+
+c172Arms ::
+  C172 Arm
+c172Arms =
+  C172
+    (Arm 37 (Just (34, 46)) (Just "front seat"))
+    (armnorange 48 (Just "fuel"))
+    (armnorange 73 (Just "rear seat"))
+    (Arm 95 (Just (82, 108)) (Just "baggage A"))
+    (Arm 123 (Just (108, 142)) (Just "baggage B"))
+
+-- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
+
+{-}
 c172R ::
   C172Arm
 c172R =
@@ -130,7 +198,7 @@ data AircraftWeight =
       Double
   }
   deriving (Eq, Ord, Show)
-
+-}
 {-
 
 limitsC172KnownArmType ::
