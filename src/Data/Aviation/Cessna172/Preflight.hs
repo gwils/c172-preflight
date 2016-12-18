@@ -14,7 +14,7 @@ import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Traversal, Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, (&~))
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -43,8 +43,8 @@ armnorange ::
 armnorange n m =
   Arm n Nothing m
 
-data C172 a =
-  C172 {
+data C172Arms a =
+  C172Arms {
     _frontseat ::
       a
   , _rearseat ::
@@ -58,22 +58,25 @@ data C172 a =
   }
   deriving (Eq, Ord, Show)
 
-makeClassy ''C172
+makeClassy ''C172Arms
 
-instance Functor C172 where
-  fmap k (C172 t r f a b) =
-    C172 (k t) (k r) (k f) (k a) (k b)
+instance Functor C172Arms where
+  fmap k (C172Arms t r f a b) =
+    C172Arms (k t) (k r) (k f) (k a) (k b)
 
-instance Applicative C172 where
+instance Applicative C172Arms where
   pure a =
-    C172 a a a a a
-  C172 f1 f2 f3 f4 f5 <*> C172 a1 a2 a3 a4 a5 =
-    C172 (f1 a1) (f2 a2) (f3 a3) (f4 a4) (f5 a5)
+    C172Arms a a a a a
+  C172Arms f1 f2 f3 f4 f5 <*> C172Arms a1 a2 a3 a4 a5 =
+    C172Arms (f1 a1) (f2 a2) (f3 a3) (f4 a4) (f5 a5)
 
-traverseC172 ::
-  Traversal (C172 a) (C172 b) a b
-traverseC172 k (C172 t r f a b) =
-  C172 <$> k t <*> k r <*> k f <*> k a <*> k b
+instance Foldable C172Arms where
+  foldr k z (C172Arms t r f a b) =
+    foldr k z [t,r,f,a,b]
+
+instance Traversable C172Arms where
+  traverse k (C172Arms t r f a b) =
+    C172Arms <$> k t <*> k r <*> k f <*> k a <*> k b
 
 data Weight =
   Weight
@@ -83,30 +86,10 @@ data Weight =
 makeWrapped ''Weight
 makeClassy ''Weight
 
-data ArmWeight =
-  ArmWeight
-    Arm
-    Weight
-  deriving (Eq, Ord, Show)
-
-makeClassy ''ArmWeight
-
-instance HasArm ArmWeight where
-  arm =
-    lens
-      (\(ArmWeight a _) -> a)
-      (\(ArmWeight _ w) a -> ArmWeight a w)
-
-instance HasWeight ArmWeight where
-  weight =
-    lens
-      (\(ArmWeight _ w) -> w)
-      (\(ArmWeight a _) w -> ArmWeight a w)
-
-c172Arms ::
-  C172 Arm
-c172Arms =
-  C172
+c172ArmsPOH ::
+  C172Arms Arm
+c172ArmsPOH =
+  C172Arms
     (Arm 37 (Just (34, 46)) (Just "front seat"))
     (armnorange 48 (Just "fuel"))
     (armnorange 73 (Just "rear seat"))
