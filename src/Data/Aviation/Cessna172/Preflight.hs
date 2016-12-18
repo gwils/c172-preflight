@@ -14,7 +14,7 @@ import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Traversal, Traversal', Prism', Lens', makeClassy, makeWrapped, prism', lens, view, set, (&~))
+import Control.Lens(Traversal, Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -70,9 +70,9 @@ instance Applicative C172 where
   C172 f1 f2 f3 f4 f5 <*> C172 a1 a2 a3 a4 a5 =
     C172 (f1 a1) (f2 a2) (f3 a3) (f4 a4) (f5 a5)
 
-c172arms ::
+traverseC172 ::
   Traversal (C172 a) (C172 b) a b
-c172arms k (C172 t r f a b) =
+traverseC172 k (C172 t r f a b) =
   C172 <$> k t <*> k r <*> k f <*> k a <*> k b
 
 data Weight =
@@ -113,27 +113,40 @@ c172Arms =
     (Arm 95 (Just (82, 108)) (Just "baggage A"))
     (Arm 123 (Just (108, 142)) (Just "baggage B"))
 
-applyingC172 ::
+applying ::
+  Applicative f =>
   Lens' a b
-  -> Lens' (C172 a) (C172 b)
-applyingC172 k =
-  lens
-    (fmap (view k))
-    (\c1 c2 -> flip (set k) <$> c1 <*> c2)
+  -> Lens' (f a) (f b)
+applying k =
+  lens (fmap (view k)) (\c1 c2 -> flip (set k) <$> c1 <*> c2)
 
-applyingC172Arm ::
-  HasArm a =>
-  Lens' (C172 a) (C172 Arm)
-applyingC172Arm = 
-  applyingC172 arm
+applyingArm ::
+  (Applicative f, HasArm a) =>
+  Lens' (f a) (f Arm)
+applyingArm = 
+  applying arm
 
-applyingC172Weight ::
-  HasWeight a =>
-  Lens' (C172 a) (C172 Weight)
-applyingC172Weight = 
-  applyingC172 weight
+applyingWeight ::
+  (Applicative f, HasWeight a) =>
+  Lens' (f a) (f Weight)
+applyingWeight = 
+  applying weight
 
+newtype Moment =
+  Moment
+    Rational
+  deriving (Eq, Ord, Show)
 
+makeWrapped ''Moment
+makeClassy ''Moment
+
+calculateMoment ::
+  (HasArm arm, HasWeight weight) =>
+  arm
+  -> weight
+  -> Moment
+calculateMoment a w =
+  Moment (toRational (view armmeasure a) * view (weight . _Wrapped) w)
 
 -- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
 
