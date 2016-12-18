@@ -131,6 +131,37 @@ calculateMoment ::
 calculateMoment a w =
   Moment (toRational (view armmeasure a) * view (weight . _Wrapped) w)
 
+----
+
+data C172AircraftArms a =
+  C172AircraftArms {
+    _aircraft ::
+      a
+  , c172Arms_ ::
+      C172Arms a
+  }
+  deriving (Eq, Ord, Show)
+
+makeClassy ''C172AircraftArms
+
+instance Functor C172AircraftArms where
+  fmap k (C172AircraftArms c x) =
+    C172AircraftArms (k c) (fmap k x)
+
+instance Applicative C172AircraftArms where
+  pure a =
+    C172AircraftArms a (pure a)
+  C172AircraftArms c1 c2 <*> C172AircraftArms x1 x2 =
+    C172AircraftArms (c1 x1) (c2 <*> x2)
+
+instance Foldable C172AircraftArms where
+  foldr k z (C172AircraftArms c x) =
+    k c (foldr k z x)
+
+instance Traversable C172AircraftArms where
+  traverse k (C172AircraftArms c x) =
+    C172AircraftArms <$> k c <*> traverse k x
+
 -- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
 
 
