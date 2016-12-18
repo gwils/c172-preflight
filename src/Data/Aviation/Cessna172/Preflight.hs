@@ -84,6 +84,12 @@ data Weight =
 makeWrapped ''Weight
 makeClassy ''Weight
 
+instance Monoid Weight where
+  mempty =
+    Weight 0
+  Weight a `mappend` Weight b =
+    Weight (a + b)
+    
 c172ArmsPOH ::
   C172Arms MeasuredArm
 c172ArmsPOH =
@@ -121,6 +127,12 @@ newtype Moment =
 makeWrapped ''Moment
 makeClassy ''Moment
 
+instance Monoid Moment where
+  mempty =
+    Moment 0
+  Moment a `mappend` Moment b =
+    Moment (a + b)
+
 calculateMoment ::
   (HasMeasuredArm arm, HasWeight weight) =>
   arm
@@ -141,7 +153,7 @@ calculateMoments =
 
 data C172AircraftArms a =
   C172AircraftArms {
-    _aircraft ::
+    _aircraftArm ::
       a
   , c172Arms_ ::
       C172Arms a
@@ -174,7 +186,35 @@ instance Traversable C172AircraftArms where
   traverse k (C172AircraftArms c x) =
     C172AircraftArms <$> k c <*> traverse k x
 
+data Aircraft =
+  Aircraft
+    MeasuredArm
+    Weight
+  deriving (Eq, Ord, Show)
+
+makeClassy ''Aircraft
+
+instance HasMeasuredArm Aircraft where
+  measuredArm =
+    lens
+      (\(Aircraft a _) -> a)
+      (\(Aircraft _ w) a -> Aircraft a w)
+
+instance HasWeight Aircraft where
+  weight =
+    lens
+      (\(Aircraft _ w) -> w)
+      (\(Aircraft a _) w -> Aircraft a w)
+
 ----
+
+c172Aircraft ::
+  MeasuredArm
+  -> Weight
+  -> C172Arms Weight
+  -> C172AircraftArms Aircraft
+c172Aircraft a w ww =
+  Aircraft <$> C172AircraftArms a c172ArmsPOH <*> C172AircraftArms w ww
 
 c172MeasuredArms ::
   Rational
@@ -184,29 +224,17 @@ c172MeasuredArms a =
     (measuredArmNorange a)
     c172ArmsPOH
 
-vhafrMeasuredArms ::
-  C172AircraftArms MeasuredArm
-vhafrMeasuredArms =
-  c172MeasuredArms 39.37
-
-vhafrWeight ::
+vhafrAircraft ::
   C172Arms Weight
-  -> C172AircraftArms Weight
-vhafrWeight =
-  C172AircraftArms
-    (Weight 1684.3)
-    
-vhlseMeasuredArms ::
-  C172AircraftArms MeasuredArm
-vhlseMeasuredArms =
-  c172MeasuredArms 40.6
+  -> C172AircraftArms Aircraft
+vhafrAircraft =
+  c172Aircraft (measuredArmNorange 39.37) (Weight 1684.3)
 
-vhlseWeight ::
+vhlseAircraft ::
   C172Arms Weight
-  -> C172AircraftArms Weight
-vhlseWeight =
-  C172AircraftArms
-    (Weight 1691.6)
+  -> C172AircraftArms Aircraft
+vhlseAircraft =
+  c172Aircraft (measuredArmNorange 40.6) (Weight 1691.6)
     
 
 -- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
