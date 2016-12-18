@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Data.Aviation.Cessna172.Preflight where
 
@@ -13,7 +14,7 @@ import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Traversal, Prism', makeClassy, makeWrapped, prism', lens, (&~))
+import Control.Lens(Traversal, Traversal', Prism', Lens', makeClassy, makeWrapped, prism', lens, view, set, (&~))
 import Data.CircularSeq(CSeq)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
@@ -63,6 +64,12 @@ instance Functor C172 where
   fmap k (C172 t r f a b) =
     C172 (k t) (k r) (k f) (k a) (k b)
 
+instance Applicative C172 where
+  pure a =
+    C172 a a a a a
+  C172 f1 f2 f3 f4 f5 <*> C172 a1 a2 a3 a4 a5 =
+    C172 (f1 a1) (f2 a2) (f3 a3) (f4 a4) (f5 a5)
+
 c172arms ::
   Traversal (C172 a) (C172 b) a b
 c172arms k (C172 t r f a b) =
@@ -106,7 +113,30 @@ c172Arms =
     (Arm 95 (Just (82, 108)) (Just "baggage A"))
     (Arm 123 (Just (108, 142)) (Just "baggage B"))
 
+applyingC172 ::
+  Lens' a b
+  -> Lens' (C172 a) (C172 b)
+applyingC172 k =
+  lens
+    (fmap (view k))
+    (\c1 c2 -> flip (set k) <$> c1 <*> c2)
+
+applyingC172Arm ::
+  HasArm a =>
+  Lens' (C172 a) (C172 Arm)
+applyingC172Arm = 
+  applyingC172 arm
+
+applyingC172Weight ::
+  HasWeight a =>
+  Lens' (C172 a) (C172 Weight)
+applyingC172Weight = 
+  applyingC172 weight
+
+
+
 -- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
+
 
 {-}
 c172R ::
