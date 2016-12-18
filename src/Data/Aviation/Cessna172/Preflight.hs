@@ -10,6 +10,7 @@
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
+import Control.Applicative(liftA2)
 import Data.Foldable(toList)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
@@ -24,24 +25,21 @@ import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
 import Data.Ext(ext)
 
-data Arm =
-  Arm {
+data MeasuredArm =
+  MeasuredArm {
     _armmeasure ::
-      Int -- inches
+      Rational -- inches
   , _armrange ::
-      Maybe (Int, Int)
-  , _name ::
-      Maybe String
+      Maybe (Rational, Rational)
   } deriving (Eq, Ord, Show)
 
-makeClassy ''Arm
+makeClassy ''MeasuredArm
 
-armnorange :: 
-  Int
-  -> Maybe String
-  -> Arm
-armnorange n m =
-  Arm n Nothing m
+measuredArmNorange :: 
+  Rational
+  -> MeasuredArm
+measuredArmNorange n =
+  MeasuredArm n Nothing
 
 data C172Arms a =
   C172Arms {
@@ -87,14 +85,14 @@ makeWrapped ''Weight
 makeClassy ''Weight
 
 c172ArmsPOH ::
-  C172Arms Arm
+  C172Arms MeasuredArm
 c172ArmsPOH =
   C172Arms
-    (Arm 37 (Just (34, 46)) (Just "front seat"))
-    (armnorange 48 (Just "fuel"))
-    (armnorange 73 (Just "rear seat"))
-    (Arm 95 (Just (82, 108)) (Just "baggage A"))
-    (Arm 123 (Just (108, 142)) (Just "baggage B"))
+    (MeasuredArm 37 (Just (34, 46)))
+    (measuredArmNorange 48)
+    (measuredArmNorange 73)
+    (MeasuredArm 95 (Just (82, 108)))
+    (MeasuredArm 123 (Just (108, 142)))
 
 applying ::
   Applicative f =>
@@ -103,11 +101,11 @@ applying ::
 applying k =
   lens (fmap (view k)) (\c1 c2 -> flip (set k) <$> c1 <*> c2)
 
-applyingArm ::
-  (Applicative f, HasArm a) =>
-  Lens' (f a) (f Arm)
-applyingArm = 
-  applying arm
+applyingMeasuredArm ::
+  (Applicative f, HasMeasuredArm a) =>
+  Lens' (f a) (f MeasuredArm)
+applyingMeasuredArm = 
+  applying measuredArm
 
 applyingWeight ::
   (Applicative f, HasWeight a) =>
@@ -124,12 +122,20 @@ makeWrapped ''Moment
 makeClassy ''Moment
 
 calculateMoment ::
-  (HasArm arm, HasWeight weight) =>
+  (HasMeasuredArm arm, HasWeight weight) =>
   arm
   -> weight
   -> Moment
 calculateMoment a w =
-  Moment (toRational (view armmeasure a) * view (weight . _Wrapped) w)
+  Moment (view armmeasure a * view (weight . _Wrapped) w)
+
+calculateMoments ::
+  (Applicative f, HasMeasuredArm arm, HasWeight weight) =>
+  f arm
+  -> f weight
+  -> f Moment
+calculateMoments =
+  liftA2 calculateMoment
 
 ----
 
@@ -143,6 +149,12 @@ data C172AircraftArms a =
   deriving (Eq, Ord, Show)
 
 makeClassy ''C172AircraftArms
+
+instance HasC172Arms (C172AircraftArms a) a where
+  c172Arms =
+    lens
+      (\(C172AircraftArms _ c) -> c)
+      (\(C172AircraftArms c _) a -> C172AircraftArms c a)
 
 instance Functor C172AircraftArms where
   fmap k (C172AircraftArms c x) =
@@ -162,8 +174,55 @@ instance Traversable C172AircraftArms where
   traverse k (C172AircraftArms c x) =
     C172AircraftArms <$> k c <*> traverse k x
 
--- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
+----
 
+c172MeasuredArms ::
+  Rational
+  -> C172AircraftArms MeasuredArm
+c172MeasuredArms a =
+  C172AircraftArms
+    (measuredArmNorange a)
+    c172ArmsPOH
+
+vhafrMeasuredArms ::
+  C172AircraftArms MeasuredArm
+vhafrMeasuredArms =
+  c172MeasuredArms 39.37
+
+vhafrWeight ::
+  C172Arms Weight
+  -> C172AircraftArms Weight
+vhafrWeight =
+  C172AircraftArms
+    (Weight 1684.3)
+    
+vhlseMeasuredArms ::
+  C172AircraftArms MeasuredArm
+vhlseMeasuredArms =
+  c172MeasuredArms 40.6
+
+vhlseWeight ::
+  C172Arms Weight
+  -> C172AircraftArms Weight
+vhlseWeight =
+  C172AircraftArms
+    (Weight 1691.6)
+    
+
+-- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
+{-
+
+VH-LSE
+
+Weight (lbs): 1663.2
+Arm (in): 40.719
+Moment (lb-in): 67724
+Basic Empty Weight
+
+    Weight (lbs): 1691.6
+    Arm (in): 40.600
+    Moment (lb-in): 68679
+-}
 
 {-}
 c172R ::
@@ -315,17 +374,6 @@ nearestPoints y p =
   sqDistanceToArg p . supportingLine <$> outerBoundaryEdges y
 
 {-
-
-VH-LSE
-
-Weight (lbs): 1663.2
-Arm (in): 40.719
-Moment (lb-in): 67724
-Basic Empty Weight
-
-    Weight (lbs): 1691.6
-    Arm (in): 40.600
-    Moment (lb-in): 68679
 
 -- https://hackage.haskell.org/package/hgeometry-0.5.0.0/docs/Data-Geometry-Polygon.html
 
