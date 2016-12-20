@@ -11,19 +11,19 @@ module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
 import Control.Applicative(liftA2)
-import Data.Foldable(toList)
+import Data.Foldable(toList, fold)
 import Diagrams.Prelude(V2)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, (&~))
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~))
 import Data.CircularSeq(CSeq)
+import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
-import Data.Geometry.Point(Point(Point), point2)
-import Data.Geometry.Polygon(SimplePolygon, inPolygon, fromPoints, outerBoundaryEdges)
+import Data.Geometry.Point(Point(Point), point2, _point2)
+import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundaryEdges, outerBoundary)
 import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
-import Data.Ext(ext)
 
 data MeasuredArm =
   MeasuredArm {
@@ -220,82 +220,59 @@ vhlseWeight =
   C172AircraftArms
     (Weight 1691.6)
 
--- VH-AFR BEW is - 764kg (1684.3lb); arm - 1000mm (39.37in); moment - 763999kgmm (66311lbin)
+----
+
+sumArmsAndWeight ::
+  (HasWeight weight, HasMeasuredArm arm, Foldable f, Applicative f) =>
+  f arm
+  -> f weight
+  -> Point 2 Rational
+sumArmsAndWeight a w =
+  let (Moment m, Weight x) = (fold (calculateMoments a w), foldMap (view weight) w)
+  in  point2 (m) x
+
+vhafrArmsAndWeight ::
+  C172Arms Weight
+  -> Point 2 Rational
+vhafrArmsAndWeight =
+  sumArmsAndWeight vhafrMeasuredArms . vhafrWeight
+
+vhlseArmsAndWeight ::
+  C172Arms Weight
+  -> Point 2 Rational
+vhlseArmsAndWeight =
+  sumArmsAndWeight vhlseMeasuredArms . vhlseWeight
+
 {-
 
-VH-LSE
 
-Weight (lbs): 1663.2
-Arm (in): 40.719
-Moment (lb-in): 67724
-Basic Empty Weight
+vhafrMeasuredArms ::
+  C172AircraftArms MeasuredArm
+vhafrMeasuredArms =
+  c172MeasuredArms 39.37
 
-    Weight (lbs): 1691.6
-    Arm (in): 40.600
-    Moment (lb-in): 68679
+vhafrWeight ::
+  C172Arms Weight
+  -> C172AircraftArms Weight
+vhafrWeight =
+
 -}
+----
 
-{-}
-c172R ::
-  C172Arm
-c172R =
-  C172Arm
-    (Arm 37 (Just (34, 46)) (Just "front seat"))
-    (armnorange 48 (Just "fuel"))
-    (armnorange 73 (Just "rear seat"))
-    (Arm 95 (Just (82, 108)) (Just "baggage A"))
-    (Arm 123 (Just (108, 142)) (Just "baggage B"))
+sampleC172ArmWeights ::
+  C172Arms Weight
+sampleC172ArmWeights =
+  Weight <$>
+    C172Arms
+      363.763
+      176.37
+      180
+      22.0462
+      2.20462
 
-data Weight =
-  Weight
-    Rational -- todo units
-  deriving (Eq, Ord, Show)
-
-makeWrapped ''Weight
-
-data ArmWeight =
-  ArmWeight {
-    _armArmWeight ::
-      Arm
-  , _armweight ::
-      Weight
-  } deriving (Eq, Ord, Show)
-
-makeClassy ''ArmWeight
-
-instance Arms ArmWeight where
-  arms =
-    armArmWeight . arms
-
-class ArmWeights a where
-  armweights ::
-    Traversal' a ArmWeight
-
-instance ArmWeights ArmWeight where
-  armweights =
-    id
-    
 -- baggage "A" maximum 120lb
 -- baggage "B" maximum 50lb
 -- maximum overall baggage 120lb
-
-data AircraftWeight =
-  AircraftWeight {
-    _bew ::
-      Double
-  , _frontseatweight ::
-      Double -- pounds
-  , _fuelweight ::
-      Double -- gallons
-  , _rearseatweight ::
-      Double
-  , _baggageaweight ::
-      Double
-  , _baggagebweight ::
-      Double
-  }
-  deriving (Eq, Ord, Show)
--}
 {-
 
 limitsC172KnownArmType ::
@@ -308,46 +285,6 @@ limitsC172KnownArmType =
     , Limit (Set.fromList [BaggageA, BaggageB]) (Capacity 120)
     , Limit (Set.singleton Fuel) (Capacity 336)
     ]
--}
-
-----
-
-{-
-vhlsecapacityArmType ::
-  GetCapacity C172KnownArmType
-  -> GetCapacity C172ArmType
-vhlsecapacityArmType k =
-  GetCapacity (
-      \a -> case a of
-              KnownC172ArmType t ->
-                t & k ^. _Wrapped
-              Aircraft ->
-                Capacity 1691.6
-    )
-  
-vhlsearmArmType ::
-  GetArm C172ArmType
-vhlsearmArmType =
-  getarmC172ArmType (armnorange 40.600)
-
-getcapacityC172KnownArmType ::
-  GetCapacity C172KnownArmType
-getcapacityC172KnownArmType =
-  GetCapacity (
-      \a -> Capacity (
-              case a of
-                FrontSeat -> 
-                  363.763
-                RearSeat -> 
-                  176.37
-                Fuel -> 
-                  180
-                BaggageA -> 
-                  22.0462
-                BaggageB -> 
-                  2.20462
-            )
-    )
 -}
 
 ----
@@ -953,12 +890,39 @@ polygon1 = [(120.5, 2550), (71, 1500), (52.5,1500), (68,1950), (104.5, 2550)]
 polygon2 :: [(Double, Double)]
 polygon2 = [(61, 1500), (89, 2200), (82.5, 2200), (68,1950)]
 
+{-
+g :: Axis B V2 Double
+g = 
+  linePlot' (fmap (over both fromRational . _point2 . _core) (view outerBoundary c172UtilityCategory))
+-}
+
+snochead ::
+  forall s a.
+  (Cons s s a a, Snoc s s a a) =>
+  s
+  -> s
+snochead x = 
+  let h = x ^? _head
+  in  case h of
+        Nothing ->
+          x
+        Just i ->
+          snoc x i
+
+polygonPoint2 ::
+  Fractional b =>
+  Polygon t extra Rational ->
+  CSeq (b, b)
+polygonPoint2 =
+  fmap (over both fromRational . _point2 . _core) . view outerBoundary
 
 myaxis :: Axis B V2 Double
-myaxis = r2Axis &~ do
-  linePlot' polygon1
-  linePlot' polygon2
-
+myaxis =
+  let linePlotPolygon = linePlot' . snochead  . toList . polygonPoint2
+  in  r2Axis &~ do
+        linePlotPolygon c172NormalCategory
+        linePlotPolygon c172UtilityCategory
+        
 main :: IO ()
 main = r2AxisMain myaxis
 
