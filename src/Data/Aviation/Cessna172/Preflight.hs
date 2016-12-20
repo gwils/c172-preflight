@@ -884,18 +884,6 @@ inner x =
 ---- Moment Envelope
 
 
-polygon1 :: [(Double, Double)]
-polygon1 = [(120.5, 2550), (71, 1500), (52.5,1500), (68,1950), (104.5, 2550)]
-
-polygon2 :: [(Double, Double)]
-polygon2 = [(61, 1500), (89, 2200), (82.5, 2200), (68,1950)]
-
-{-
-g :: Axis B V2 Double
-g = 
-  linePlot' (fmap (over both fromRational . _point2 . _core) (view outerBoundary c172UtilityCategory))
--}
-
 snochead ::
   forall s a.
   (Cons s s a a, Snoc s s a a) =>
