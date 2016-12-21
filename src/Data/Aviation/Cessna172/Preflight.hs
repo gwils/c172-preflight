@@ -12,11 +12,11 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Prelude(V2, red, local, _fontSize)
+import Diagrams.Prelude(V2, red, green, blue, orange, local, _fontSize)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot', linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=))
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (.~))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
@@ -907,18 +907,16 @@ polygonPoint2 =
 
 plot :: Axis B V2 Double
 plot =
-  let linePlotPolygon = linePlot' . snochead  . toList . polygonPoint2
+  let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
   in  r2Axis &~ do
-
-        linePlotPolygon c172NormalCategory
-        linePlotPolygon c172UtilityCategory
         
-        linePlot [ (95,2010),(95,2400) ] $
-          plotColor .= red
+        linePlotPolygon c172UtilityCategory orange
+        linePlotPolygon c172NormalCategory green
+        
+        linePlot [ (95,2010),(95,2400) ] (plotColor .= red)
 
-        linePlot [ (83,2200),(104,2200) ] $
-          plotColor .= red
-
+        linePlot [ (83,2200),(104,2200) ] (plotColor .= blue)
+          
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
 
