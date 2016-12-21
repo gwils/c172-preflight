@@ -12,10 +12,11 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Prelude(V2)
+import Diagrams.Prelude(V2, red, green, blue, orange, local, _fontSize)
 import Diagrams.Backend.Rasterific.CmdLine(B)
-import Plots(Axis, r2Axis, r2AxisMain, linePlot')
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~))
+import Plots(Axis, r2Axis, r2AxisMain, linePlot', linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
+             axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (.~))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
@@ -904,15 +905,42 @@ polygonPoint2 ::
 polygonPoint2 =
   fmap (over both fromRational . _point2 . _core) . view outerBoundary
 
-myaxis :: Axis B V2 Double
-myaxis =
-  let linePlotPolygon = linePlot' . snochead  . toList . polygonPoint2
+plot :: Axis B V2 Double
+plot =
+  let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
   in  r2Axis &~ do
-        linePlotPolygon c172NormalCategory
-        linePlotPolygon c172UtilityCategory
         
+        linePlotPolygon c172UtilityCategory orange
+        linePlotPolygon c172NormalCategory green
+        
+        linePlot [ (95,2010),(95,2400) ] (plotColor .= red)
+
+        linePlot [ (83,2200),(104,2200) ] (plotColor .= blue)
+          
+        xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
+        yLabel .= "Loaded Airplane Weight (Pounds)"
+
+        xMin .= Just 50
+        yMin .= Just 1500
+
+        xMax .= Just 130
+        yMax .= Just 2600
+
+        xAxis &= do
+          axisLabelPosition .= MiddleAxisLabel
+          axisLabelStyle . _fontSize .= local 8.5
+          tickLabelStyle . _fontSize .= local 8.5
+          scaleAspectRatio .= Just 11
+          minorGridLines . visible .= True
+
+        yAxis &= do
+          axisLabelPosition .= MiddleAxisLabel
+          axisLabelStyle . _fontSize .= local 8.5
+          tickLabelStyle . _fontSize .= local 8.5
+          minorGridLines . visible .= True
+
 main :: IO ()
-main = r2AxisMain myaxis
+main = r2AxisMain plot
 
 ----
 
