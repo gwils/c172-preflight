@@ -5,11 +5,11 @@
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
-import Diagrams.Prelude(V2, local, _fontSize)
+import Diagrams.Prelude(V2, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
-import Plots(Axis, r2Axis, r2AxisMain, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
-             axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
-import Control.Lens((.=), (&~))
+import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
+import Plots(Axis, r2Axis, r2AxisMain, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, axisLabelPosition, axisLabelTextFunction, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
+import Control.Lens((.=), (&~), (%=))
 
 
 ----
@@ -34,6 +34,7 @@ plot =
       scaleAspectRatio .= Just 11
       minorGridLines . visible .= True
 
+    yAxis . axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
     yAxis &= do
       axisLabelPosition .= MiddleAxisLabel
       axisLabelStyle . _fontSize .= local 8.5
