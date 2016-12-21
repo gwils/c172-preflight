@@ -8,8 +8,8 @@ import Prelude
 import Diagrams.Prelude(V2, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
-import Plots(Axis, r2Axis, r2AxisMain, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, axisLabelPosition, axisLabelTextFunction, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
-import Control.Lens((.=), (&~), (%=))
+import Plots(Axis, r2Axis, r2AxisMain, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, axisLabelPosition, axisLabelTextFunction, axisLabelGap, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
+import Control.Lens((.=), (&~), (%=), (*=))
 
 
 ----
@@ -35,6 +35,7 @@ plot =
       minorGridLines . visible .= True
 
     yAxis . axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
+    yAxis . axisLabelGap *= 2
     yAxis &= do
       axisLabelPosition .= MiddleAxisLabel
       axisLabelStyle . _fontSize .= local 8.5
