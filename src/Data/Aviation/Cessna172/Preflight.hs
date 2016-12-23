@@ -933,31 +933,23 @@ plot pq =
         yMax .= Just 2600
 
         xAxis &= do
-          minorTicksFunction .= minorTicksHelper 10
-          majorTicksStyle .= lwO 1.6 mempty
-          axisLabelPosition .= MiddleAxisLabel
-          axisLabelStyle . _fontSize .= local 8.5
-          tickLabelStyle . _fontSize .= local 8.5
           scaleAspectRatio .= Just 11
-          minorGridLines . visible .= True
-          minorGridLinesStyle .= lwO 0.3 mempty
-          majorGridLinesStyle .= lwO 0.6 mempty
           majorTicksFunction .= \_ -> [50, 60, 70, 80, 90, 100, 110, 120, 130]
 
         yAxis &= do
-          minorTicksFunction .= minorTicksHelper 10
-          majorTicksStyle .= lwO 1.6 mempty
-          axisLabelPosition .= MiddleAxisLabel
-          axisLabelStyle . _fontSize .= local 8.5
-          tickLabelStyle . _fontSize .= local 8.5
-          minorGridLines . visible .= True
           axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
           axisLabelGap *= 2
-          minorGridLinesStyle .= lwO 0.3 mempty
-          majorGridLinesStyle .= lwO 0.6 mempty
           majorTicksFunction .= \_ -> [1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600]
 
+        axisLabelStyle . _fontSize .= local 8.5
+        tickLabelStyle . _fontSize .= local 8.5
+        axisLabelPosition .= MiddleAxisLabel
+        minorTicksFunction .= minorTicksHelper 10
+        majorTicksStyle .= lwO 1.6 mempty
+        minorGridLinesStyle .= lwO 0.3 mempty
+        majorGridLinesStyle .= lwO 0.6 mempty
         tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
+        minorGridLines . visible .= True
 
 main :: IO ()
 main = r2AxisMain (plot (point2 95000 2300))
