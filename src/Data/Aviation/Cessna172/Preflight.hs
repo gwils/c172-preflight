@@ -17,7 +17,7 @@ import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, gridLinesStyle)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=))
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (&), _1)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
@@ -907,18 +907,20 @@ polygonPoint2 ::
 polygonPoint2 =
   fmap (over both fromRational . _point2 . _core) . view outerBoundary
 
-plot :: Axis B V2 Double
-plot =
+plot ::
+  Point 2 Rational
+  -> Axis B V2 Double
+plot pq =
   let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
+      (p, q) = _point2 pq & _1 %~ (/ 1000)      
+      xcrosshair = map (map (over both fromRational)) [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
   in  r2Axis &~ do
         
         linePlotPolygon c172UtilityCategory black
         linePlotPolygon c172NormalCategory black
         
-        linePlot [ (95,2010),(95,2400) ] (plotColor .= red)
+        mapM_ (`linePlot` (plotColor .= red)) xcrosshair
 
-        linePlot [ (83,2200),(104,2200) ] (plotColor .= red)
-          
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
 
@@ -936,7 +938,6 @@ plot =
           minorGridLines . visible .= True
           gridLinesStyle . _lineWidth .= local 0.5
 
-
         yAxis &= do
           axisLabelPosition .= MiddleAxisLabel
           axisLabelStyle . _fontSize .= local 8.5
@@ -947,7 +948,7 @@ plot =
           gridLinesStyle . _lineWidth .= local 0.5
 
 main :: IO ()
-main = r2AxisMain plot
+main = r2AxisMain (plot (point2 95000 2300))
 
 ----
 
