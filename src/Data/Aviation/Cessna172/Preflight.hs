@@ -913,13 +913,13 @@ plot ::
 plot pq =
   let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
       (p, q) = _point2 pq & _1 %~ (/ 1000)      
-      xcrosshair = map (map (over both fromRational)) [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
+      crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
   in  r2Axis &~ do
         
         linePlotPolygon c172UtilityCategory black
         linePlotPolygon c172NormalCategory black
         
-        mapM_ (`linePlot` (plotColor .= red)) xcrosshair
+        mapM_ (\xx -> map (over both fromRational) xx `linePlot` (plotColor .= red)) crosshair
 
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
