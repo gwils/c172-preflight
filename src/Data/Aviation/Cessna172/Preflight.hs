@@ -12,12 +12,13 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Attributes(lwO)
-import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
+import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#), _lineWidth)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
-             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, majorGridLinesStyle, minorGridLinesStyle)
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, gridLinesStyle, atMajorTicks, tickLabelFunction,
+             majorTicksFunction, minorTicksHelper, minorTicksFunction)
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=))
 import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (&), _1)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
@@ -932,27 +933,21 @@ plot pq =
         yMax .= Just 2600
 
         xAxis &= do
-          minorTicksFunction .= minorTicksHelper 10
-          majorTicksStyle .= lwO 1.6 mempty
-          axisLabelPosition .= MiddleAxisLabel
-          axisLabelStyle . _fontSize .= local 8.5
-          tickLabelStyle . _fontSize .= local 8.5
           scaleAspectRatio .= Just 11
-          minorGridLines . visible .= True
-          minorGridLinesStyle .= lwO 0.3 mempty
-          majorGridLinesStyle .= lwO 0.6 mempty
+          majorTicksFunction .= \_ -> [50, 60, 70, 80, 90, 100, 110, 120, 130]
 
         yAxis &= do
-          minorTicksFunction .= minorTicksHelper 10
-          majorTicksStyle .= lwO 1.6 mempty
-          axisLabelPosition .= MiddleAxisLabel
-          axisLabelStyle . _fontSize .= local 8.5
-          tickLabelStyle . _fontSize .= local 8.5
-          minorGridLines . visible .= True
-          axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
           axisLabelGap *= 2
-          minorGridLinesStyle .= lwO 0.3 mempty
-          majorGridLinesStyle .= lwO 0.6 mempty
+          axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
+          majorTicksFunction .= \_ -> [1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600]
+
+        axisLabelStyle . _fontSize .= local 8.5
+        tickLabelStyle . _fontSize .= local 8.5
+        minorGridLines . visible .= True
+        gridLinesStyle . _lineWidth .= local 0.5
+        tickLabelFunction .= atMajorTicks (show . round)
+        axisLabelPosition .= MiddleAxisLabel
+        minorTicksFunction .= minorTicksHelper 10
 
 main :: IO ()
 main = r2AxisMain (plot (point2 95000 2300))
