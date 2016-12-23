@@ -12,11 +12,11 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
+import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#), _lineWidth)
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
-             minorGridLines, visible, axisLabelGap, axisLabelTextFunction)
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, gridLinesStyle)
 import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
@@ -934,6 +934,8 @@ plot =
           tickLabelStyle . _fontSize .= local 8.5
           scaleAspectRatio .= Just 11
           minorGridLines . visible .= True
+          gridLinesStyle . _lineWidth .= local 0.5
+
 
         yAxis &= do
           axisLabelPosition .= MiddleAxisLabel
@@ -942,6 +944,7 @@ plot =
           minorGridLines . visible .= True
           axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
           axisLabelGap *= 2
+          gridLinesStyle . _lineWidth .= local 0.5
 
 main :: IO ()
 main = r2AxisMain plot
