@@ -12,11 +12,12 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Prelude(V2, red, green, blue, orange, local, _fontSize)
+import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
-             axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=))
+             axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction)
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
@@ -25,6 +26,7 @@ import Data.Geometry.Point(Point(Point), point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundaryEdges, outerBoundary)
 import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
+import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 
 data MeasuredArm =
   MeasuredArm {
@@ -910,12 +912,12 @@ plot =
   let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
   in  r2Axis &~ do
         
-        linePlotPolygon c172UtilityCategory orange
-        linePlotPolygon c172NormalCategory green
+        linePlotPolygon c172UtilityCategory black
+        linePlotPolygon c172NormalCategory black
         
         linePlot [ (95,2010),(95,2400) ] (plotColor .= red)
 
-        linePlot [ (83,2200),(104,2200) ] (plotColor .= blue)
+        linePlot [ (83,2200),(104,2200) ] (plotColor .= red)
           
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
@@ -938,6 +940,8 @@ plot =
           axisLabelStyle . _fontSize .= local 8.5
           tickLabelStyle . _fontSize .= local 8.5
           minorGridLines . visible .= True
+          axisLabelTextFunction %= \f _ s -> f (BoxAlignedText 0.5 0.5) s # rotateBy (1/4)
+          axisLabelGap *= 2
 
 main :: IO ()
 main = r2AxisMain plot
