@@ -12,7 +12,7 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Attributes(lwO)
+import Diagrams.Attributes(lwO, _lw)
 import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
@@ -915,17 +915,17 @@ plot ::
 plot pq =
   let linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) $ 
         do  plotColor .= c
-            -- lineStyle .= lwO l mempty
+            lineStyle . _lw .= l
       (p, q) = _point2 pq & _1 %~ (/ 1000)      
       crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
   in  r2Axis &~ do
         
-        linePlotPolygon c172UtilityCategory black 0.8
-        linePlotPolygon c172NormalCategory black 0.8
+        linePlotPolygon c172UtilityCategory black 0.7
+        linePlotPolygon c172NormalCategory black 0.7
         
         mapM_ (\xx -> map (over both fromRational) xx `linePlot`
             do  plotColor .= red
-                -- lineStyle .= lwO 1.5 mempty
+                lineStyle . _lw .= 1.5
           ) crosshair
 
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
@@ -950,9 +950,9 @@ plot pq =
         tickLabelStyle . _fontSize .= local 8.5
         axisLabelPosition .= MiddleAxisLabel
         minorTicksFunction .= minorTicksHelper 10
-        majorTicksStyle .= lwO 1.6 mempty
-        minorGridLinesStyle .= lwO 0.3 mempty
-        majorGridLinesStyle .= lwO 0.6 mempty
+        majorTicksStyle %= lwO 1.6
+        minorGridLinesStyle %= lwO 0.3
+        majorGridLinesStyle %= lwO 0.6
         tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
         minorGridLines . visible .= True
 
