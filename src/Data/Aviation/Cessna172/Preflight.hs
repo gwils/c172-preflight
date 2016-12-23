@@ -926,7 +926,7 @@ plot pq =
         yLabel .= "Loaded Airplane Weight (Pounds)"
 
         xMin .= Just 50
-        yMin .= Just 1500
+        yMin .= Just 1480
 
         xMax .= Just 130
         yMax .= Just 2600
