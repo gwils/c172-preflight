@@ -12,7 +12,7 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
-import Diagrams.Prelude(V2, red, green, blue, orange, local, _fontSize, rotateBy, (#))
+import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot', linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
@@ -912,12 +912,12 @@ plot =
   let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
   in  r2Axis &~ do
         
-        linePlotPolygon c172UtilityCategory orange
-        linePlotPolygon c172NormalCategory green
+        linePlotPolygon c172UtilityCategory black
+        linePlotPolygon c172NormalCategory black
         
         linePlot [ (95,2010),(95,2400) ] (plotColor .= red)
 
-        linePlot [ (83,2200),(104,2200) ] (plotColor .= blue)
+        linePlot [ (83,2200),(104,2200) ] (plotColor .= red)
           
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
