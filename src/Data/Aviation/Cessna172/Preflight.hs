@@ -17,7 +17,7 @@ import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
-             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, majorGridLinesStyle, minorGridLinesStyle)
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, majorGridLinesStyle, minorGridLinesStyle, lineStyle)
 import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (&), _1)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
@@ -912,13 +912,13 @@ plot ::
   Point 2 Rational
   -> Axis B V2 Double
 plot pq =
-  let linePlotPolygon x c = (linePlot . snochead  . toList . polygonPoint2  $ x) (plotColor .= c)
+  let linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) (do plotColor .= c; lineStyle .= lwO l mempty)
       (p, q) = _point2 pq & _1 %~ (/ 1000)      
       crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
   in  r2Axis &~ do
         
-        linePlotPolygon c172UtilityCategory black
-        linePlotPolygon c172NormalCategory black
+        linePlotPolygon c172UtilityCategory black 0.8
+        linePlotPolygon c172NormalCategory black 0.8
         
         mapM_ (\xx -> map (over both fromRational) xx `linePlot` (plotColor .= red)) crosshair
 
