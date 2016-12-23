@@ -16,7 +16,7 @@ import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#), _lineWi
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
-             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, gridLinesStyle)
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, gridLinesStyle)
 import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (&), _1)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
@@ -931,6 +931,7 @@ plot pq =
         yMax .= Just 2600
 
         xAxis &= do
+          minorTicksFunction .= minorTicksHelper 10
           axisLabelPosition .= MiddleAxisLabel
           axisLabelStyle . _fontSize .= local 8.5
           tickLabelStyle . _fontSize .= local 8.5
@@ -939,6 +940,7 @@ plot pq =
           gridLinesStyle . _lineWidth .= local 0.5
 
         yAxis &= do
+          minorTicksFunction .= minorTicksHelper 10
           axisLabelPosition .= MiddleAxisLabel
           axisLabelStyle . _fontSize .= local 8.5
           tickLabelStyle . _fontSize .= local 8.5
