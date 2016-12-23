@@ -17,7 +17,8 @@ import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
-             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, majorGridLinesStyle, minorGridLinesStyle, lineStyle)
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
+             majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (&), _1)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
@@ -941,6 +942,7 @@ plot pq =
           minorGridLines . visible .= True
           minorGridLinesStyle .= lwO 0.3 mempty
           majorGridLinesStyle .= lwO 0.6 mempty
+          majorTicksFunction .= \_ -> [50, 60, 70, 80, 90, 100, 110, 120, 130]
 
         yAxis &= do
           minorTicksFunction .= minorTicksHelper 10
@@ -953,6 +955,9 @@ plot pq =
           axisLabelGap *= 2
           minorGridLinesStyle .= lwO 0.3 mempty
           majorGridLinesStyle .= lwO 0.6 mempty
+          majorTicksFunction .= \_ -> [1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600]
+
+        tickLabelFunction .= atMajorTicks (show . round)
 
 main :: IO ()
 main = r2AxisMain (plot (point2 95000 2300))
