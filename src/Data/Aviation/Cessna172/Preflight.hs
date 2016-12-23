@@ -14,9 +14,9 @@ import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
 import Diagrams.Prelude(V2, red, green, blue, orange, local, _fontSize)
 import Diagrams.Backend.Rasterific.CmdLine(B)
-import Plots(Axis, r2Axis, r2AxisMain, linePlot', linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
+import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, minorGridLines, visible)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (.~))
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
@@ -962,3 +962,69 @@ rational2Double ::
   -> Double
 rational2Double = 
   fromRational
+
+----
+
+{-
+
+module Avgas100LL(
+  Kilograms(kilograms)
+, Avgas100LL
+) where
+
+import Control.Lens(Iso', iso)
+import Data.Ratio((%))
+import Numeric.Lens
+
+newtype Avgas100LL =
+  Avgas100LL
+    Rational -- normalise to pounds, hide constructor
+  deriving (Eq, Ord, Show)
+
+class Pounds a where
+  pounds ::
+    Iso' Rational a
+
+instance Pounds Avgas100LL where
+  pounds =
+    iso
+      Avgas100LL
+      (\(Avgas100LL x) -> x)
+
+class Kilograms a where
+  kilograms ::    
+    Iso' Rational a
+
+instance Kilograms Avgas100LL where
+  kilograms =
+    let rate = 22046226218 % 10000000000
+    in  multiplying rate . pounds
+
+class USGallons a where
+  usgallons ::
+    Iso' Rational a
+
+instance USGallons Avgas100LL where
+  usgallons =
+    let rate = 6 -- Cessna 172 PoH, Section 6 WEIGHT AND BALANCE, LOADING GRAPH 6-12
+    in  multiplying rate . pounds
+
+class ImperialGallons a where
+  imperialgallons ::
+    Iso' Rational a
+
+instance ImperialGallons Avgas100LL where
+  imperialgallons =
+    let rate = 454609 % 100000
+    in  multiplying rate . litres
+
+class Litres a where
+  litres ::
+    Iso' Rational a
+
+instance Litres Avgas100LL where
+  litres =
+    let rate = 1 / ((254 * 254 * 254 * 231) % 1000000000)
+    in  multiplying rate . usgallons
+
+-}
