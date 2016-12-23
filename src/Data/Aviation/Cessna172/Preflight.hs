@@ -957,7 +957,7 @@ plot pq =
           majorGridLinesStyle .= lwO 0.6 mempty
           majorTicksFunction .= \_ -> [1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600]
 
-        tickLabelFunction .= atMajorTicks (show . round)
+        tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
 
 main :: IO ()
 main = r2AxisMain (plot (point2 95000 2300))
