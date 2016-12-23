@@ -915,7 +915,7 @@ plot ::
 plot pq =
   let linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) $ 
         do  plotColor .= c
-            lineStyle .= lwO l mempty
+            -- lineStyle .= lwO l mempty
       (p, q) = _point2 pq & _1 %~ (/ 1000)      
       crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
   in  r2Axis &~ do
@@ -925,7 +925,7 @@ plot pq =
         
         mapM_ (\xx -> map (over both fromRational) xx `linePlot`
             do  plotColor .= red
-                lineStyle .= lwO 1.5 mempty
+                -- lineStyle .= lwO 1.5 mempty
           ) crosshair
 
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
