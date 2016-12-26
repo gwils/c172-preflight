@@ -12,9 +12,11 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
+import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
 import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
 import Diagrams.Backend.Rasterific.CmdLine(B)
+import Diagrams.Core.Types(QDiagram)
 import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
@@ -29,6 +31,7 @@ import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, oute
 import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
 import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
+import Plots.Axis.Render(renderAxis)
 
 data MeasuredArm =
   MeasuredArm {
@@ -978,8 +981,37 @@ plot pq =
         tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
         minorGridLines . visible .= True
 
+result ::
+  Axis B V2 Double
+result =
+  plot (vhlseArmsAndWeight sampleC172ArmWeights3)
+
+renderResult ::
+  QDiagram B V2 Double Any
+renderResult = 
+  renderAxis result
+
 main :: IO ()
-main = r2AxisMain (plot (vhlseArmsAndWeight sampleC172ArmWeights3))
+main = r2AxisMain result
+
+{-
+r2AxisMain = mainWith
+
+mainWith d = do
+    opts <- mainArgs d
+    mainRender opts d
+
+mainArgs _ = defaultOpts parser
+
+mainRender :: MainOpts d -> d -> IO ()
+mainRender opts = mainRender opts . renderAxis
+
+renderAxis = renderR2Axis
+
+renderR2Axis :: (TypeableFloat n, Renderable (Path V2 n) b)
+  => Axis b V2 n -> QDiagram b V2 n Any
+
+-}
 
 ----
 
