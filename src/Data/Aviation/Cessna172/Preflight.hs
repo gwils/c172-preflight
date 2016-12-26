@@ -280,8 +280,8 @@ sampleC172ArmWeights2 ::
 sampleC172ArmWeights2 =
   Weight <$>
     C172Arms
-      (176.37 + 176.37) -- Tony + George
-      110.231 -- Jess
+      (176.37 + 187.393) -- Tony + George
+      108.027 -- Jess
       336 -- max fuel
       22.0462
       0
@@ -291,8 +291,8 @@ sampleC172ArmWeights3 ::
 sampleC172ArmWeights3 =
   Weight <$>
     C172Arms
-      (176.37 + 110.231) -- Tony + Jess
-      176.37 -- George
+      (176.37 + 108.027) -- Tony + Jess
+      187.393 -- George
       336 -- max fuel
       22.0462
       0
