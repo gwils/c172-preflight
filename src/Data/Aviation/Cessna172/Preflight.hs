@@ -275,6 +275,28 @@ sampleC172ArmWeights =
       22.0462
       2.20462
 
+sampleC172ArmWeights2 ::
+  C172Arms Weight
+sampleC172ArmWeights2 =
+  Weight <$>
+    C172Arms
+      (176.37 + 176.37) -- Tony + George
+      110.231 -- Jess
+      336 -- max fuel
+      22.0462
+      0
+
+sampleC172ArmWeights3 ::
+  C172Arms Weight
+sampleC172ArmWeights3 =
+  Weight <$>
+    C172Arms
+      (176.37 + 110.231) -- Tony + Jess
+      176.37 -- George
+      336 -- max fuel
+      22.0462
+      0
+
 -- baggage "A" maximum 120lb
 -- baggage "B" maximum 50lb
 -- maximum overall baggage 120lb
@@ -957,7 +979,7 @@ plot pq =
         minorGridLines . visible .= True
 
 main :: IO ()
-main = r2AxisMain (plot (point2 95000 2300))
+main = r2AxisMain (plot (vhlseArmsAndWeight sampleC172ArmWeights3))
 
 ----
 
