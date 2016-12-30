@@ -1023,25 +1023,6 @@ main =
                   False                  
   in  mapM_ (\o -> fst (renderDia Cairo o renderResult)) [pngoptions, psoptions, pdfoptions, svgoptions]
 
-{-
-r2AxisMain = mainWith
-
-mainWith d = do
-    opts <- mainArgs d
-    mainRender opts d
-
-mainArgs _ = defaultOpts parser
-
-mainRender :: MainOpts d -> d -> IO ()
-mainRender opts = mainRender opts . renderAxis
-
-renderAxis = renderR2Axis
-
-renderR2Axis :: (TypeableFloat n, Renderable (Path V2 n) b)
-  => Axis b V2 n -> QDiagram b V2 n Any
-
--}
-
 ----
 
 showRationalPoint ::
