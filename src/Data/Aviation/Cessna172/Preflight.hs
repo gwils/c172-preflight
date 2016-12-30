@@ -12,6 +12,7 @@ module Data.Aviation.Cessna172.Preflight where
 import Prelude
 import Control.Applicative(liftA2)
 import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (&), _1)
+import Control.Monad.State(State)
 import Data.Foldable(toList, fold)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
@@ -952,24 +953,18 @@ dejavuSansMono =
 
 plot :: 
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
-  Point 2 Rational
+  State (Axis b V2 Double) a
   -> Axis b V2 Double
-plot pq =
+plot z =
   let linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) $ 
         do  plotColor .= c
             lineStyle . _lw .= l
-      (p, q) = _point2 pq & _1 %~ (/ 1000)      
-      crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
   in  r2Axis &~ do
-        
+        _ <- z
+
         linePlotPolygon c172UtilityCategory black 0.7
         linePlotPolygon c172NormalCategory black 0.7
         
-        mapM_ (\xx -> map (over both fromRational) xx `linePlot`
-            do  plotColor .= red
-                lineStyle . _lw .= 1.5
-          ) crosshair
-
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
 
@@ -998,11 +993,24 @@ plot pq =
         tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
         minorGridLines . visible .= True
 
+crosshairplot :: 
+  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
+  Point 2 Rational
+  -> Axis b V2 Double
+crosshairplot pq =
+  let (p, q) = _point2 pq & _1 %~ (/ 1000)
+      crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
+      draw = mapM_ (\xx -> map (over both fromRational) xx `linePlot`
+                             do  plotColor .= red
+                                 lineStyle . _lw .= 1.5
+                           ) crosshair
+  in  plot draw
+
 result ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   Axis b V2 Double
 result =
-  plot (vhlseArmsAndWeight sampleC172ArmWeights3)
+  crosshairplot (vhlseArmsAndWeight sampleC172ArmWeights3)
 
 renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>

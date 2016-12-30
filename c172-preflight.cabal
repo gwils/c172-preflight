@@ -34,6 +34,7 @@ library
                     , diagrams-lib
                     , diagrams-rasterific
                     , diagrams-svg
+                    , mtl
                     , plots
                     , hgeometry
                     , containers
