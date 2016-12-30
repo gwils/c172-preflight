@@ -1008,29 +1008,29 @@ renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   QDiagram b V2 Double Any
 renderResult = 
-  vcat' (with & sep .~ 5) [renderAxis result # dejavuSansMono, alignedText (-0.1) (1.0) "this is some text" # fontSizeL 12 # dejavuSansMono, renderAxis result]
+  vcat' (with & sep .~ 5) [renderAxis result # dejavuSansMono, alignedText (-0.1) (1.0) "this is some text" # fontSizeL 12 # dejavuSansMono]
 
 main ::
   IO ()
 main =
   let pngoptions = CairoOptions
                   "output.png"
-                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PNG
                   False
       psoptions = CairoOptions
                   "output.ps"
-                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PS
                   False
       pdfoptions = CairoOptions
                   "output.pdf"
-                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PDF
                   False
       svgoptions = CairoOptions
                   "output.svg"
-                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   SVG
                   False                  
   in  mapM_ (\o -> fst (renderDia Cairo o renderResult)) [pngoptions, psoptions, pdfoptions, svgoptions]
