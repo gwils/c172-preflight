@@ -11,21 +11,26 @@ module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
 import Control.Applicative(liftA2)
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (&), _1)
 import Data.Foldable(toList, fold)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
 import Diagrams.Prelude(V2(V2), black, red, local, _fontSize, rotateBy, mkSizeSpec, (#))
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
+import Diagrams.Combinators(sep)
 import Diagrams.Core.Compile(renderDia)
+import Diagrams.Core.Style(HasStyle)
 import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
-import Diagrams.TwoD.Text(Text)
+import Diagrams.TwoD.Combinators((===), vcat')
+import Diagrams.TwoD.Ellipse(circle)
+import Diagrams.TwoD.Text(Text, text, alignedText, fontSizeL, font)
+import Diagrams.Util(with)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (&), _1)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult)
@@ -938,6 +943,13 @@ polygonPoint2 ::
 polygonPoint2 =
   fmap (over both fromRational . _point2 . _core) . view outerBoundary
 
+dejavuSansMono ::
+  HasStyle a =>
+  a
+  -> a
+dejavuSansMono =
+  font "DejaVu Sans Mono"
+
 plot :: 
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   Point 2 Rational
@@ -996,7 +1008,8 @@ renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   QDiagram b V2 Double Any
 renderResult = 
-  renderAxis result
+  vcat' (with & sep .~ 5) [renderAxis result # dejavuSansMono]
+      
 
 main ::
   IO ()
