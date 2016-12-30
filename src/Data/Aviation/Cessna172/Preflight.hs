@@ -14,10 +14,14 @@ import Control.Applicative(liftA2)
 import Data.Foldable(toList, fold)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2, black, red, local, _fontSize, rotateBy, (#))
-import Diagrams.Backend.Rasterific.CmdLine(B)
-import Diagrams.Core.Types(QDiagram)
-import Plots(Axis, r2Axis, r2AxisMain, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
+import Diagrams.Prelude(V2(V2), black, red, local, _fontSize, rotateBy, mkSizeSpec, (#))
+import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
+import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
+import Diagrams.Core.Compile(renderDia)
+import Diagrams.Core.Types(QDiagram, Renderable)
+import Diagrams.Path(Path)
+import Diagrams.TwoD.Text(Text)
+import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
@@ -934,9 +938,10 @@ polygonPoint2 ::
 polygonPoint2 =
   fmap (over both fromRational . _point2 . _core) . view outerBoundary
 
-plot ::
+plot :: 
+  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   Point 2 Rational
-  -> Axis B V2 Double
+  -> Axis b V2 Double
 plot pq =
   let linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) $ 
         do  plotColor .= c
@@ -982,17 +987,41 @@ plot pq =
         minorGridLines . visible .= True
 
 result ::
-  Axis B V2 Double
+  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
+  Axis b V2 Double
 result =
   plot (vhlseArmsAndWeight sampleC172ArmWeights3)
 
 renderResult ::
-  QDiagram B V2 Double Any
+  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
+  QDiagram b V2 Double Any
 renderResult = 
   renderAxis result
 
-main :: IO ()
-main = r2AxisMain result
+main ::
+  IO ()
+main =
+  let pngoptions = CairoOptions
+                  "output.png"
+                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  PNG
+                  False
+      psoptions = CairoOptions
+                  "output.ps"
+                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  PS
+                  False
+      pdfoptions = CairoOptions
+                  "output.pdf"
+                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  PDF
+                  False
+      svgoptions = CairoOptions
+                  "output.svg"
+                  (mkSizeSpec (V2 (Just 800) Nothing))
+                  SVG
+                  False                  
+  in  mapM_ (\o -> fst (renderDia Cairo o renderResult)) [pngoptions, psoptions, pdfoptions, svgoptions]
 
 {-
 r2AxisMain = mainWith

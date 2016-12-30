@@ -29,6 +29,7 @@ library
                     base < 5 && >= 4.8
                     , lens
                     , diagrams
+                    , diagrams-cairo
                     , diagrams-core
                     , diagrams-lib
                     , diagrams-rasterific
