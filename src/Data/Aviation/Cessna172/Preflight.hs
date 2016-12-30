@@ -1008,7 +1008,7 @@ renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   QDiagram b V2 Double Any
 renderResult = 
-  vcat' (with & sep .~ 5) [renderAxis result # dejavuSansMono, alignedText (-0.1) (1.0) "this is some text", circle 1]
+  vcat' (with & sep .~ 5) [renderAxis result # dejavuSansMono, alignedText (-0.1) (1.0) "this is some text" # fontSizeL 12 # dejavuSansMono, renderAxis result]
 
 main ::
   IO ()
