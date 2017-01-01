@@ -17,6 +17,7 @@ import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
 import Diagrams.TwoD.Combinators(vcat')
 import Diagrams.TwoD.Text
+import Diagrams.TwoD.Align(centerX)
 import Diagrams.Util(with)
 import Plots
 import Data.CircularSeq(CSeq)
@@ -54,7 +55,7 @@ renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   QDiagram b V2 Double Any
 renderResult = 
-  vcat' (with & sep .~ 5) [renderAxis plot, alignedText (-0.1) (1.0) "this is some text" # fontSizeL 12]
+  vcat' (with & sep .~ 5) [renderAxis plot # centerX, alignedText (-0.1) (1.0) "this is some text" # fontSizeL 12]
 
 main ::
   IO ()
