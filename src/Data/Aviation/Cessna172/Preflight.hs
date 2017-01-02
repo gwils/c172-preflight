@@ -24,6 +24,7 @@ import Diagrams.Core.Compile(renderDia)
 import Diagrams.Core.Style(HasStyle)
 import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
+import Diagrams.TwoD.Align(centerX)
 import Diagrams.TwoD.Combinators((===), vcat')
 import Diagrams.TwoD.Ellipse(circle)
 import Diagrams.TwoD.Text(Text, text, alignedText, fontSizeL, font)
@@ -1016,7 +1017,8 @@ renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   QDiagram b V2 Double Any
 renderResult = 
-  vcat' (with & sep .~ 5) [renderAxis result # dejavuSansMono, alignedText (-0.1) (1.0) "this is some text" # fontSizeL 12 # dejavuSansMono, renderAxis result]
+  vcat' (with & sep .~ 5) [renderAxis result # centerX # dejavuSansMono,
+                           alignedText (-0.1) (1.0) "this is some text\nthis is some more" # fontSizeL 12 # dejavuSansMono]
 
 main ::
   IO ()
