@@ -27,6 +27,7 @@ import Diagrams.Path(Path)
 import Diagrams.TwoD.Align(centerX, alignL)
 import Diagrams.TwoD.Combinators((===), vcat')
 import Diagrams.TwoD.Ellipse(circle)
+import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Text(Text, text, alignedText, fontSizeL, font)
 import Diagrams.Util(with)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
@@ -1017,29 +1018,32 @@ renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   QDiagram b V2 Double Any
 renderResult = 
-  vcat' (with & sep .~ 5) [renderAxis result # centerX # dejavuSansMono,
-                           alignedText (1.8) (0.25) "this is some text\nthis is some more\nand more..." # fontSizeL 8 # dejavuSansMono]
+  vcat' (with & sep .~ 5)
+    [
+      renderAxis result # centerX # dejavuSansMono
+    , hrule 10
+    , alignedText (1.8) (0.25) "this is some text\nthis is some more\nand more..." # fontSizeL 6 # dejavuSansMono]
 
 main ::
   IO ()
 main =
   let pngoptions = CairoOptions
-                  "output.png"
+                  "dist/output.png"
                   (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PNG
                   False
       psoptions = CairoOptions
-                  "output.ps"
+                  "dist/output.ps"
                   (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PS
                   False
       pdfoptions = CairoOptions
-                  "output.pdf"
+                  "dist/output.pdf"
                   (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PDF
                   False
       svgoptions = CairoOptions
-                  "output.svg"
+                  "dist/output.svg"
                   (mkSizeSpec (V2 Nothing Nothing))
                   SVG
                   False                  
