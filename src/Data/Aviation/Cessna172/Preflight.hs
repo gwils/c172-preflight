@@ -193,7 +193,7 @@ totalMomentPoundInchesPoint ::
   -> Point 2 Rational
 totalMomentPoundInchesPoint x =
   let Moment w a = totalMoment pounds inches x
-  in  point2 (review pounds w) (review inches a / 1000) -- TODO thousands of an inch
+  in  point2 (review inches a) (review pounds w)
 
 vhafrArmsAndWeight ::
   C172Arms Weight
