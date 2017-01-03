@@ -12,18 +12,23 @@ module Data.Aviation.Cessna172.Preflight.Moment(
 , HasMoment0(..)
 ) where
 
-import Control.Lens(Lens', Traversal', Setter', makeClassy, iso)
-import Data.Aviation.Units.Poundinches(Poundinches(poundinches))
+import Control.Lens(Lens', Traversal', Setter', makeClassy, review, to)
+import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
+import Data.Aviation.Units.Pounds(pounds)
+import Data.Aviation.Units.Inches(inches)
+import Data.Aviation.Cessna172.Preflight.Weight(Weight)
+import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic(MeasuredArmStatic)
 import Data.Eq(Eq)
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid)
 import Data.Ord(Ord)
 import Data.Semigroup
-import Prelude(Show, Rational, (+))
+import Prelude(Show, (*))
 
-newtype Moment =
+data Moment =
   Moment
-    Rational -- normalise to pound/inches
+    Weight
+    MeasuredArmStatic
   deriving (Eq, Ord, Show)
 
 makeClassy ''Moment
@@ -60,12 +65,13 @@ instance Semigroup Moment where
 
 instance Monoid Moment where
   mempty =
-    Moment 0
-  Moment w1 `mappend` Moment w2 =
-    Moment (w1 + w2)
+    Moment mempty mempty
+  Moment w1 a1 `mappend` Moment w2 a2 =
+    Moment (w1 `mappend` w2) (a1 `mappend` a2)
 
-instance Poundinches Moment where
+instance ToPoundinches Moment where
   poundinches =
-    iso
-      Moment
-      (\(Moment x) -> x)
+    to (\(Moment w a) -> 
+      let w' = review pounds w
+          a' = review inches a
+      in  w' * a')

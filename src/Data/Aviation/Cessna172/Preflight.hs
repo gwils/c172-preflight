@@ -11,7 +11,7 @@ module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
 import Control.Applicative(liftA2)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, review, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (^.), (&), _1)
+import Control.Lens(Prism', makeClassy, makeWrapped, prism', lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (^.), (&), _1)
 import Control.Monad.State(State)
 import Data.Foldable(toList, fold)
 import Data.Monoid(Any)
@@ -24,11 +24,10 @@ import Diagrams.Core.Compile(renderDia)
 import Diagrams.Core.Style(HasStyle)
 import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
-import Diagrams.TwoD.Align(centerX, alignL)
-import Diagrams.TwoD.Combinators((===), vcat')
-import Diagrams.TwoD.Ellipse(circle)
+import Diagrams.TwoD.Align(centerX)
+import Diagrams.TwoD.Combinators(vcat')
 import Diagrams.TwoD.Shapes
-import Diagrams.TwoD.Text(Text, text, alignedText, fontSizeL, font)
+import Diagrams.TwoD.Text(Text, alignedText, fontSizeL, font)
 import Diagrams.Util(with)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
@@ -47,6 +46,7 @@ import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
 
 import Data.Aviation.Cessna172.Preflight.MeasuredArm(MeasuredArm, MeasuredArmStatic, HasMeasuredArmStatic(measuredArmStatic), rangeMeasuredArm, staticMeasuredArm, (.->.))
+import qualified Data.Aviation.Cessna172.Preflight.Moment as M
 import Data.Aviation.Cessna172.Preflight.Weight(Weight, HasWeight(weight))
 import Data.Aviation.Units(inches, pounds, kilograms)
 
@@ -206,6 +206,15 @@ sumArmsAndWeight ::
   -> f weight
   -> Point 2 Rational
 sumArmsAndWeight a w =
+  let (Moment m, x) = (fold (calculateMoments a w), foldMap (view weight) w)
+  in  point2 m (review pounds x)
+  
+sumArmsAndWeight'' ::
+  (HasMeasuredArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
+  f arm
+  -> f weight
+  -> Point 2 Rational
+sumArmsAndWeight'' a w =
   let (Moment m, x) = (fold (calculateMoments a w), foldMap (view weight) w)
   in  point2 m (review pounds x)
   
