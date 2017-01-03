@@ -89,8 +89,8 @@ c172ArmsPOH ::
 c172ArmsPOH =
   C172Arms
     (rangeArm (37 ^. inches) (34 ^. inches .->. 46 ^. inches))
-    (staticArm (48 ^. inches))
     (staticArm (73 ^. inches))
+    (staticArm (48 ^. inches))
     (rangeArm (95 ^. inches) (82 ^. inches .->. 108 ^. inches))
     (rangeArm (123 ^. inches) (108 ^. inches .->. 142 ^. inches))
 
@@ -193,7 +193,7 @@ totalMomentPoundInchesPoint ::
   -> Point 2 Rational
 totalMomentPoundInchesPoint x =
   let Moment w a = totalMoment pounds inches x
-  in  point2 (review pounds w) (review inches a)
+  in  point2 (review pounds w) (review inches a / 1000) -- TODO thousands of an inch
 
 vhafrArmsAndWeight ::
   C172Arms Weight

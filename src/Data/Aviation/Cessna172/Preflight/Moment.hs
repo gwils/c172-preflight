@@ -114,7 +114,6 @@ totalMoment ::
 totalMoment w a m =
   let (mw, ma) = foldl (\(w', a') n ->  let w'' = view (moment . weight . re w) n
                                             a'' = view (moment . armStatic . re a) n
-                                            ww = w' + w''
-                                        in  (ww, a' + ww * a'')) (0, 0) m
+                                        in  (w' + w'', a' + w'' * a'')) (0, 0) m
   in  Moment (view w mw) (view a ma)
              
