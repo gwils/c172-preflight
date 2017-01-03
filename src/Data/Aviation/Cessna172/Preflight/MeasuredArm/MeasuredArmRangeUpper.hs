@@ -6,12 +6,14 @@ module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper(
 , HasMeasuredArmRangeUpper(..)
 , HasMeasuredArmRangeUppers(..)
 , SetMeasuredArmRangeUpper(..)
+, HasMeasuredArmRangeUpper0(..)
 ) where
 
 import Control.Category((.))
-import Control.Lens(Traversal', Setter', makeClassy, iso)
+import Control.Lens(Lens', Traversal', Setter', makeClassy, iso)
 import Data.Aviation.Units(Inches(inches), Centimetres(centimetres))
 import Data.Eq(Eq)
+import Data.Maybe(Maybe)
 import Data.Ord(Ord)
 import Data.Ratio((%))
 import Numeric.Lens(dividing)
@@ -43,6 +45,12 @@ class SetMeasuredArmRangeUpper a where
 instance SetMeasuredArmRangeUpper MeasuredArmRangeUpper where
   setMeasuredArmRangeUpper =
     measuredArmRangeUpper
+
+class HasMeasuredArmRangeUpper0 a where
+  measuredArmRangeUpper0 ::
+    Lens'
+      a
+      (Maybe MeasuredArmRangeUpper)
 
 instance Inches MeasuredArmRangeUpper where
   inches =

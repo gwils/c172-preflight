@@ -6,12 +6,14 @@ module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic(
 , HasMeasuredArmStatic(..)
 , HasMeasuredArmStatics(..)
 , SetMeasuredArmStatic(..)
+, HasMeasuredArmStatic0(..)
 ) where
 
 import Control.Category((.))
-import Control.Lens(Traversal', Setter', makeClassy, iso)
+import Control.Lens(Lens', Traversal', Setter', makeClassy, iso)
 import Data.Aviation.Units(Inches(inches), Centimetres(centimetres))
 import Data.Eq(Eq)
+import Data.Maybe(Maybe)
 import Data.Ord(Ord)
 import Data.Ratio((%))
 import Numeric.Lens(dividing)
@@ -43,6 +45,12 @@ class SetMeasuredArmStatic a where
 instance SetMeasuredArmStatic MeasuredArmStatic where
   setMeasuredArmStatic =
     measuredArmStatic
+
+class HasMeasuredArmStatic0 a where
+  measuredArmStatic0 ::
+    Lens'
+      a
+      (Maybe MeasuredArmStatic)
 
 instance Inches MeasuredArmStatic where
   inches =

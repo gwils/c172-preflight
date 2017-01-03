@@ -6,24 +6,25 @@ module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArm(
 , HasMeasuredArm(..)
 , HasMeasuredArms(..)
 , SetMeasuredArm(..)
+, HasMeasuredArm0(..)
 ) where
 
 import Control.Category((.))
-import Control.Lens(Traversal', Setter', lens, makeClassy)
-import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeLower
-import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRange
-import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic
-import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper
+import Control.Lens(Lens', Traversal', Setter', lens, makeClassy)
+import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeLower(HasMeasuredArmRangeLowers(measuredArmRangeLowers), SetMeasuredArmRangeLower(setMeasuredArmRangeLower))
+import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRange(MeasuredArmRange, HasMeasuredArmRanges(measuredArmRanges), SetMeasuredArmRange(setMeasuredArmRange), HasMeasuredArmRange0(measuredArmRange0))
+import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic(MeasuredArmStatic, HasMeasuredArmStatic(measuredArmStatic), HasMeasuredArmStatics(measuredArmStatics), SetMeasuredArmStatic(setMeasuredArmStatic))
+import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper(HasMeasuredArmRangeUppers(measuredArmRangeUppers), SetMeasuredArmRangeUpper(setMeasuredArmRangeUpper))
 import Data.Functor((<$>))
 import Data.Traversable(traverse)
 import Data.Eq(Eq)
-import Data.Maybe
+import Data.Maybe(Maybe)
 import Data.Ord(Ord)
 import Prelude(Show)
     
 data MeasuredArm =
   MeasuredArm
-    MeasuredArmStatic -- normalised to inches
+    MeasuredArmStatic
     (Maybe MeasuredArmRange)
   deriving (Eq, Ord, Show)
 
@@ -67,6 +68,10 @@ instance SetMeasuredArmRange MeasuredArm where
   setMeasuredArmRange =
     measuredArmRanges
 
+instance SetMeasuredArmStatic MeasuredArm where
+  setMeasuredArmStatic =
+    measuredArmStatic . setMeasuredArmStatic
+
 instance HasMeasuredArmRangeLowers MeasuredArm where
   measuredArmRangeLowers =
     measuredArmRanges . measuredArmRangeLowers
@@ -82,3 +87,15 @@ instance SetMeasuredArmRangeLower MeasuredArm where
 instance SetMeasuredArmRangeUpper MeasuredArm where
   setMeasuredArmRangeUpper =
     setMeasuredArmRange . setMeasuredArmRangeUpper
+
+class HasMeasuredArm0 a where
+  measuredArm0 ::
+    Lens'
+      a
+      (Maybe MeasuredArm)
+
+instance HasMeasuredArmRange0 MeasuredArm where
+  measuredArmRange0 =
+    lens
+      (\(MeasuredArm _ r) -> r)
+      (\(MeasuredArm s _) r -> MeasuredArm s r)

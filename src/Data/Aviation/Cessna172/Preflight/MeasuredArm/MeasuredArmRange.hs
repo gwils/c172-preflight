@@ -6,12 +6,14 @@ module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRange(
 , HasMeasuredArmRange(..)
 , HasMeasuredArmRanges(..)
 , SetMeasuredArmRange(..)
+, HasMeasuredArmRange0(..)
 ) where
 
-import Control.Lens(Traversal', Setter', lens, makeClassy)
+import Control.Lens(Lens', Traversal', Setter', lens, makeClassy)
 import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeLower(MeasuredArmRangeLower, HasMeasuredArmRangeLower(measuredArmRangeLower), HasMeasuredArmRangeLowers(measuredArmRangeLowers), SetMeasuredArmRangeLower(setMeasuredArmRangeLower))
 import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper(MeasuredArmRangeUpper, HasMeasuredArmRangeUpper(measuredArmRangeUpper), HasMeasuredArmRangeUppers(measuredArmRangeUppers), SetMeasuredArmRangeUpper(setMeasuredArmRangeUpper))
 import Data.Eq(Eq)
+import Data.Maybe(Maybe)
 import Data.Ord(Ord)
 import Prelude(Show)
 
@@ -70,3 +72,9 @@ instance SetMeasuredArmRangeLower MeasuredArmRange where
 instance SetMeasuredArmRangeUpper MeasuredArmRange where
   setMeasuredArmRangeUpper =
     measuredArmRangeUpper
+
+class HasMeasuredArmRange0 a where
+  measuredArmRange0 ::
+    Lens'
+      a
+      (Maybe MeasuredArmRange)
