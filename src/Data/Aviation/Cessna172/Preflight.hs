@@ -45,24 +45,8 @@ import qualified Data.Vector.Fixed as FV(length)
 import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
 
-import qualified Data.Aviation.Cessna172.Preflight.MeasuredArm as Q
-import qualified Data.Aviation.Units as U
-
-data MeasuredArm =
-  MeasuredArm {
-    _armmeasure ::
-      Rational -- inches
-  , _armrange ::
-      Maybe (Rational, Rational)
-  } deriving (Eq, Ord, Show)
-
-makeClassy ''MeasuredArm
-
-measuredArmNorange :: 
-  Rational
-  -> MeasuredArm
-measuredArmNorange n =
-  MeasuredArm n Nothing
+import Data.Aviation.Cessna172.Preflight.MeasuredArm(MeasuredArm, MeasuredArmStatic, HasMeasuredArmStatic(measuredArmStatic), rangeMeasuredArm, staticMeasuredArm, (.->.))
+import Data.Aviation.Units(inches)
 
 data C172Arms a =
   C172Arms {
@@ -114,14 +98,14 @@ instance Monoid Weight where
     Weight (a + b)
     
 c172ArmsPOH ::
-  C172Arms Q.MeasuredArm
+  C172Arms MeasuredArm
 c172ArmsPOH =
   C172Arms
-    (Q.rangeMeasuredArm (37 ^. U.inches) (34 ^. U.inches Q..->. 46 ^. U.inches))
-    (Q.staticMeasuredArm (48 ^. U.inches))
-    (Q.staticMeasuredArm (73 ^. U.inches))
-    (Q.rangeMeasuredArm (95 ^. U.inches) (82 ^. U.inches Q..->. 108 ^. U.inches))
-    (Q.rangeMeasuredArm (123 ^. U.inches) (108 ^. U.inches Q..->. 142 ^. U.inches))
+    (rangeMeasuredArm (37 ^. inches) (34 ^. inches .->. 46 ^. inches))
+    (staticMeasuredArm (48 ^. inches))
+    (staticMeasuredArm (73 ^. inches))
+    (rangeMeasuredArm (95 ^. inches) (82 ^. inches .->. 108 ^. inches))
+    (rangeMeasuredArm (123 ^. inches) (108 ^. inches .->. 142 ^. inches))
   
 newtype Moment =
   Moment
@@ -138,16 +122,16 @@ instance Monoid Moment where
     Moment (a + b)
 
 calculateMoment ::
-  (Q.HasMeasuredArmStatic arm, HasWeight weight) =>
+  (HasMeasuredArmStatic arm, HasWeight weight) =>
   arm
   -> weight
   -> Moment
 calculateMoment a w =
-  let i = review U.inches (view Q.measuredArmStatic a)
+  let i = review inches (view measuredArmStatic a)
   in  Moment (i * view (weight . _Wrapped) w)
   
 calculateMoments ::
-  (Applicative f, Q.HasMeasuredArmStatic arm, HasWeight weight) =>
+  (Applicative f, HasMeasuredArmStatic arm, HasWeight weight) =>
   f arm
   -> f weight
   -> f Moment
@@ -194,17 +178,17 @@ instance Traversable C172AircraftArms where
 ----
 
 c172MeasuredArms ::
-  Q.MeasuredArmStatic
-  -> C172AircraftArms Q.MeasuredArm
+  MeasuredArmStatic
+  -> C172AircraftArms MeasuredArm
 c172MeasuredArms a =
   C172AircraftArms
-    (Q.staticMeasuredArm a)
+    (staticMeasuredArm a)
     c172ArmsPOH
 
 vhafrMeasuredArms ::
-  C172AircraftArms Q.MeasuredArm
+  C172AircraftArms MeasuredArm
 vhafrMeasuredArms =
-  c172MeasuredArms (39.37 ^. U.inches)
+  c172MeasuredArms (39.37 ^. inches)
 
 vhafrWeight ::
   C172Arms Weight
@@ -214,9 +198,9 @@ vhafrWeight =
     (Weight 1684.3)
     
 vhlseMeasuredArms ::
-  C172AircraftArms Q.MeasuredArm
+  C172AircraftArms MeasuredArm
 vhlseMeasuredArms =
-  c172MeasuredArms (40.6 ^. U.inches)
+  c172MeasuredArms (40.6 ^. inches)
 
 vhlseWeight ::
   C172Arms Weight
@@ -228,7 +212,7 @@ vhlseWeight =
 ----
 
 sumArmsAndWeight ::
-  (Q.HasMeasuredArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
+  (HasMeasuredArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
   f arm
   -> f weight
   -> Point 2 Rational
