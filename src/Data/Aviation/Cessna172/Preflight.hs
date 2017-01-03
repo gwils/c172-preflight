@@ -10,12 +10,12 @@
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
-import Control.Lens(makeClassy, lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (^.), (&), _1)
+import Control.Lens(makeClassy, lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))
 import Control.Monad.State(State)
 import Data.Foldable(toList)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2(V2), black, red, darkgreen, local, _fontSize, rotateBy, mkSizeSpec, (#), fc)
+import Diagrams.Prelude(V2(V2), black, red, local, _fontSize, rotateBy, mkSizeSpec, (#), fc)
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
 import Diagrams.Combinators(sep)
@@ -25,26 +25,25 @@ import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
 import Diagrams.TwoD.Align(centerX)
 import Diagrams.TwoD.Combinators(vcat')
-import Diagrams.TwoD.Shapes
 import Diagrams.TwoD.Text(Text, alignedText, fontSizeL, font)
 import Diagrams.Util(with)
-import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
-             axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
-             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
-             majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
+import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
+import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
 import Data.Geometry.Point(Point, point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundaryEdges, outerBoundary)
 import Data.Semigroup((<>))
-import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
-import Plots.Axis.Render(renderAxis)
-
 import Data.Aviation.Cessna172.Preflight.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
 import Data.Aviation.Cessna172.Preflight.Moment
 import Data.Aviation.Cessna172.Preflight.Weight(Weight)
 import Data.Aviation.Units(inches, pounds, kilograms)
+import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
+             axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
+             minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
+             majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
+import Plots.Axis.Render(renderAxis)
 import Text.Printf
 
 data C172Arms a =
@@ -310,14 +309,26 @@ renderTextResult pq =
   let (p, q) =
         _point2 pq
       textRational r =
-        printf "%0.2f" (fromRational r :: Double)
+        printf "%.2f" (fromRational r :: Double)
+      utility =
+        pq `inPolygon` c172UtilityCategory
+      normal =
+        pq `inPolygon` c172NormalCategory
+      textPointLocationResult Inside =
+        "YES"
+      textPointLocationResult Outside = 
+        "NO"
+      textPointLocationResult OnBoundary = 
+        "NO"
   in  vcat' (with & sep .~ 15)
         [
           renderResult pq
          -- coordinates of point
          -- in which CG envelope
-          , alignedText (0.93) (-1.65) ("Moment " ++ textRational (p * 1000) ++ " pound/inches") # fontSizeL 6 # dejavuSansMono # fc red
-          , alignedText (0.96) (-2.20) ("All Up Weight " ++ textRational q ++ " pounds") # fontSizeL 6 # dejavuSansMono # fc red
+          , alignedText (0.650) (-1.65) ("Moment              " ++ textRational (p * 1000) ++ " pound/inches") # fontSizeL 6 # dejavuSansMono # fc red
+          , alignedText (0.805) (-2.20) ("All Up Weight       " ++ textRational q ++ " pounds") # fontSizeL 6 # dejavuSansMono # fc red
+          , alignedText (1.245) (-2.20) ("Utility Category    " ++ textPointLocationResult utility) # fontSizeL 6 # dejavuSansMono # fc red
+          , alignedText (1.190) (-2.80) ("Normal Category     " ++ textPointLocationResult normal) # fontSizeL 6 # dejavuSansMono # fc red
         ]
 
 ----
