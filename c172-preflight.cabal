@@ -51,7 +51,16 @@ library
                     src
 
   exposed-modules:
+                    Data.Aviation.Units
+                    Data.Aviation.Units.Centimetres
+                    Data.Aviation.Units.Inches
                     Data.Aviation.Cessna172.Preflight
+                    Data.Aviation.Cessna172.Preflight.MeasuredArm
+                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArm
+                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRange
+                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeLower
+                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic
+                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper
 
 test-suite doctests
   type:
