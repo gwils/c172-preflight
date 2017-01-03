@@ -52,18 +52,18 @@ library
 
   exposed-modules:
                     Data.Aviation.Units
+                    Data.Aviation.Cessna172.Preflight.Arm
+                    Data.Aviation.Cessna172.Preflight.Arm.Arm
+                    Data.Aviation.Cessna172.Preflight.Arm.ArmRange
+                    Data.Aviation.Cessna172.Preflight.Arm.ArmRangeLower
+                    Data.Aviation.Cessna172.Preflight.Arm.ArmStatic
+                    Data.Aviation.Cessna172.Preflight.Arm.ArmRangeUpper
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
                     Data.Aviation.Units.Kilograms
                     Data.Aviation.Units.Pounds
                     Data.Aviation.Units.Poundinches
                     Data.Aviation.Cessna172.Preflight
-                    Data.Aviation.Cessna172.Preflight.MeasuredArm
-                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArm
-                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRange
-                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeLower
-                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic
-                    Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper
                     Data.Aviation.Cessna172.Preflight.Moment
                     Data.Aviation.Cessna172.Preflight.Weight
 

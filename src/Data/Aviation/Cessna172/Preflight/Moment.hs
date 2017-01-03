@@ -13,8 +13,8 @@ import Control.Lens(Lens', Traversal', Setter', makeClassy, review, to)
 import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
 import Data.Aviation.Units.Pounds(pounds)
 import Data.Aviation.Units.Inches(inches)
+import Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(ArmStatic)
 import Data.Aviation.Cessna172.Preflight.Weight(Weight)
-import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic(MeasuredArmStatic)
 import Data.Eq(Eq)
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid)
@@ -25,7 +25,7 @@ import Prelude(Show, (*))
 data Moment =
   Moment
     Weight
-    MeasuredArmStatic
+    ArmStatic
   deriving (Eq, Ord, Show)
 
 makeClassy ''Moment
