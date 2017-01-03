@@ -187,23 +187,25 @@ vhlseMoment wt =
 
 ----
 
-moment2PoundInchesPoint ::
-  Moment
+totalMomentPoundInchesPoint ::
+  (HasMoment moment, Foldable f) =>
+  f moment
   -> Point 2 Rational
-moment2PoundInchesPoint (Moment w a) =
-  point2 (review pounds w) (review inches a)
+totalMomentPoundInchesPoint x =
+  let Moment w a = totalMoment pounds inches x
+  in  point2 (review pounds w) (review inches a)
 
 vhafrArmsAndWeight ::
   C172Arms Weight
   -> Point 2 Rational
 vhafrArmsAndWeight =
-  moment2PoundInchesPoint . sumMomentAxes . vhafrMoment
+  totalMomentPoundInchesPoint . vhafrMoment
 
 vhlseArmsAndWeight ::
   C172Arms Weight
   -> Point 2 Rational
 vhlseArmsAndWeight =
-  moment2PoundInchesPoint . sumMomentAxes . vhlseMoment
+  totalMomentPoundInchesPoint . vhlseMoment
 
 ----
 

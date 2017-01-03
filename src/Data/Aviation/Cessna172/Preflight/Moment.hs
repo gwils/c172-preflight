@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Data.Aviation.Cessna172.Preflight.Moment(
   Moment(..)
@@ -7,23 +8,23 @@ module Data.Aviation.Cessna172.Preflight.Moment(
 , HasMoments(..)
 , SetMoment(..)
 , HasMoment0(..)
-, sumMomentAxes
+, totalMoment
 ) where
 
 import Control.Category((.))
-import Control.Lens(Lens', Traversal', Setter', lens, makeClassy, review, view, to)
+import Control.Lens(Lens', Traversal', Setter', Iso', lens, makeClassy, review, view, to, re)
 import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
 import Data.Aviation.Units.Pounds(pounds)
 import Data.Aviation.Units.Inches(inches)
 import Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
 import Data.Aviation.Cessna172.Preflight.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
 import Data.Eq(Eq)
-import Data.Foldable(Foldable, foldMap)
+import Data.Foldable(Foldable, foldl)
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid)
 import Data.Ord(Ord)
 import Data.Semigroup
-import Prelude(Show, (*))
+import Prelude(Show, (*), (+), Rational)
 
 data Moment =
   Moment
@@ -104,15 +105,16 @@ instance SetArmStatic Moment where
   setArmStatic =
     armStatic
 
-sumMomentAxes ::
+totalMoment ::
   (HasMoment moment, Foldable f) =>
-  f moment
+  Iso' Rational Weight
+  -> Iso' Rational ArmStatic
+  -> f moment
   -> Moment
-sumMomentAxes m =
-  let sumaxis g m' = 
-        foldMap (view (moment . g)) m'
-      w =
-        sumaxis weight m
-      a =
-        sumaxis armStatic m
-  in  Moment w a
+totalMoment w a m =
+  let (mw, ma) = foldl (\(w', a') n ->  let w'' = view (moment . weight . re w) n
+                                            a'' = view (moment . armStatic . re a) n
+                                            ww = w' + w''
+                                        in  (ww, a' + ww * a'')) (0, 0) m
+  in  Moment (view w mw) (view a ma)
+             
