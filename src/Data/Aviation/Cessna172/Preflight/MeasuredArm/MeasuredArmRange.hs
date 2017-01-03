@@ -2,11 +2,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRange(
-  MeasuredArmRange
+  MeasuredArmRange(..)
 , HasMeasuredArmRange(..)
 , HasMeasuredArmRanges(..)
 , SetMeasuredArmRange(..)
 , HasMeasuredArmRange0(..)
+, (.->.)
 ) where
 
 import Control.Lens(Lens', Traversal', Setter', lens, makeClassy)
@@ -24,6 +25,15 @@ data MeasuredArmRange =
   deriving (Eq, Ord, Show)
 
 makeClassy ''MeasuredArmRange
+
+(.->.) ::
+  MeasuredArmRangeLower
+  -> MeasuredArmRangeUpper
+  -> MeasuredArmRange
+(.->.) =
+  MeasuredArmRange
+
+infixl 2 .->. 
 
 class HasMeasuredArmRanges a where
   measuredArmRanges ::

@@ -2,7 +2,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArm(
-  MeasuredArm
+  MeasuredArm(..)
+, staticMeasuredArm
+, rangeMeasuredArm
 , HasMeasuredArm(..)
 , HasMeasuredArms(..)
 , SetMeasuredArm(..)
@@ -18,7 +20,7 @@ import Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper(HasMe
 import Data.Functor((<$>))
 import Data.Traversable(traverse)
 import Data.Eq(Eq)
-import Data.Maybe(Maybe)
+import Data.Maybe(Maybe(Nothing, Just))
 import Data.Ord(Ord)
 import Prelude(Show)
     
@@ -29,6 +31,19 @@ data MeasuredArm =
   deriving (Eq, Ord, Show)
 
 makeClassy ''MeasuredArm
+
+staticMeasuredArm ::
+  MeasuredArmStatic
+  -> MeasuredArm
+staticMeasuredArm x =
+  MeasuredArm x Nothing
+
+rangeMeasuredArm ::
+  MeasuredArmStatic
+  -> MeasuredArmRange
+  -> MeasuredArm
+rangeMeasuredArm x =
+  MeasuredArm x . Just
 
 class HasMeasuredArms a where
   measuredArms ::
