@@ -66,6 +66,7 @@ library
                     Data.Aviation.Cessna172.Preflight
                     Data.Aviation.Cessna172.Preflight.Moment
                     Data.Aviation.Cessna172.Preflight.Weight
+                    Data.Aviation.Cessna172.Preflight.TakeoffLanding
 
 test-suite doctests
   type:

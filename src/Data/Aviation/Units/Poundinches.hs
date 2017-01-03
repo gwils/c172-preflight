@@ -7,7 +7,7 @@ module Data.Aviation.Units.Poundinches(
 ) where
 
 import Control.Category(id)
-import Control.Lens(Getter, Iso', view, review, to)
+import Control.Lens(Getter, review, to)
 import Data.Aviation.Units.Pounds(Pounds(pounds))
 import Data.Aviation.Units.Inches(Inches(inches))
 import Prelude(Rational, (*))
