@@ -10,10 +10,9 @@
 module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
-import Control.Applicative(liftA2)
-import Control.Lens(Prism', makeClassy, makeWrapped, prism', lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (^.), (&), _1)
+import Control.Lens(Prism', makeClassy, prism', lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (^.), (&), _1)
 import Control.Monad.State(State)
-import Data.Foldable(toList, fold)
+import Data.Foldable(toList)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
 import Diagrams.Prelude(V2(V2), black, red, local, _fontSize, rotateBy, mkSizeSpec, (#))
@@ -46,8 +45,8 @@ import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
 
 import Data.Aviation.Cessna172.Preflight.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
-import qualified Data.Aviation.Cessna172.Preflight.Moment as M
-import Data.Aviation.Cessna172.Preflight.Weight(Weight, HasWeight(weight))
+import Data.Aviation.Cessna172.Preflight.Moment
+import Data.Aviation.Cessna172.Preflight.Weight(Weight)
 import Data.Aviation.Units(inches, pounds, kilograms)
 
 data C172Arms a =
@@ -94,38 +93,6 @@ c172ArmsPOH =
     (staticArm (73 ^. inches))
     (rangeArm (95 ^. inches) (82 ^. inches .->. 108 ^. inches))
     (rangeArm (123 ^. inches) (108 ^. inches .->. 142 ^. inches))
-  
-newtype Moment =
-  Moment
-    Rational
-  deriving (Eq, Ord, Show)
-
-makeWrapped ''Moment
-makeClassy ''Moment
-
-instance Monoid Moment where
-  mempty =
-    Moment 0
-  Moment a `mappend` Moment b =
-    Moment (a + b)
-
-calculateMoment ::
-  (HasArmStatic arm, HasWeight weight) =>
-  arm
-  -> weight
-  -> Moment
-calculateMoment a w =
-  let a' = review inches (view armStatic a)
-      w' = review pounds (view weight w)
-  in  Moment (a' * w')
-  
-calculateMoments ::
-  (Applicative f, HasArmStatic arm, HasWeight weight) =>
-  f arm
-  -> f weight
-  -> f Moment
-calculateMoments =
-  liftA2 calculateMoment
 
 ----
 
@@ -174,10 +141,13 @@ c172ArmsAircraft a =
     (staticArm a)
     c172ArmsPOH
 
-vhafrArms ::
-  C172AircraftArms Arm
-vhafrArms =
-  c172ArmsAircraft (39.37 ^. inches)
+c172Moment :: 
+  (HasArmStatic s, Applicative f) =>
+  f Weight
+  -> f s
+  -> f Moment
+c172Moment wt b =
+  (\w -> Moment w . view armStatic) <$> wt <*> b
 
 vhafrWeight ::
   C172Arms Weight
@@ -185,11 +155,17 @@ vhafrWeight ::
 vhafrWeight =
   C172AircraftArms
     (1684.3 ^. pounds)
-    
-vhlseArms ::
+
+vhafrArms ::
   C172AircraftArms Arm
-vhlseArms =
-  c172ArmsAircraft (40.6 ^. inches)
+vhafrArms =
+  c172ArmsAircraft (39.37 ^. inches)
+
+vhafrMoment ::
+  C172Arms Weight
+  -> C172AircraftArms Moment
+vhafrMoment wt =
+  c172Moment (vhafrWeight wt) vhafrArms
 
 vhlseWeight ::
   C172Arms Weight
@@ -198,37 +174,36 @@ vhlseWeight =
   C172AircraftArms
     (1691.6 ^. pounds)
 
+vhlseArms ::
+  C172AircraftArms Arm
+vhlseArms =
+  c172ArmsAircraft (40.6 ^. inches)
+
+vhlseMoment ::
+  C172Arms Weight
+  -> C172AircraftArms Moment
+vhlseMoment wt =
+  c172Moment (vhlseWeight wt) vhlseArms
+
 ----
 
-sumArmsAndWeight ::
-  (HasArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
-  f arm
-  -> f weight
+moment2PoundInchesPoint ::
+  Moment
   -> Point 2 Rational
-sumArmsAndWeight a w =
-  let (Moment m, x) = (fold (calculateMoments a w), foldMap (view weight) w)
-  in  point2 m (review pounds x)
-  
-sumArmsAndWeight'' ::
-  (HasArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
-  f arm
-  -> f weight
-  -> Point 2 Rational
-sumArmsAndWeight'' a w =
-  let (Moment m, x) = (fold (calculateMoments a w), foldMap (view weight) w)
-  in  point2 m (review pounds x)
-  
+moment2PoundInchesPoint (Moment w a) =
+  point2 (review pounds w) (review inches a)
+
 vhafrArmsAndWeight ::
   C172Arms Weight
   -> Point 2 Rational
 vhafrArmsAndWeight =
-  sumArmsAndWeight vhafrArms . vhafrWeight
+  moment2PoundInchesPoint . sumMomentAxes . vhafrMoment
 
 vhlseArmsAndWeight ::
   C172Arms Weight
   -> Point 2 Rational
 vhlseArmsAndWeight =
-  sumArmsAndWeight vhlseArms . vhlseWeight
+  moment2PoundInchesPoint . sumMomentAxes . vhlseMoment
 
 ----
 

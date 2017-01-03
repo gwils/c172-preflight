@@ -7,15 +7,18 @@ module Data.Aviation.Cessna172.Preflight.Moment(
 , HasMoments(..)
 , SetMoment(..)
 , HasMoment0(..)
+, sumMomentAxes
 ) where
 
-import Control.Lens(Lens', Traversal', Setter', makeClassy, review, to)
+import Control.Category((.))
+import Control.Lens(Lens', Traversal', Setter', lens, makeClassy, review, view, to)
 import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
 import Data.Aviation.Units.Pounds(pounds)
 import Data.Aviation.Units.Inches(inches)
-import Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(ArmStatic)
-import Data.Aviation.Cessna172.Preflight.Weight(Weight)
+import Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
+import Data.Aviation.Cessna172.Preflight.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
 import Data.Eq(Eq)
+import Data.Foldable(Foldable, foldMap)
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid)
 import Data.Ord(Ord)
@@ -72,3 +75,44 @@ instance ToPoundinches Moment where
       let w' = review pounds w
           a' = review inches a
       in  w' * a')
+
+instance HasWeight Moment where
+  weight =
+    lens
+      (\(Moment w _) -> w)
+      (\(Moment _ a) w -> Moment w a)
+
+instance HasWeights Moment where
+  weights =
+    weight
+
+instance SetWeight Moment where
+  setWeight =
+    weight
+
+instance HasArmStatic Moment where
+  armStatic =
+    lens
+      (\(Moment _ a) -> a)
+      (\(Moment w _) a -> Moment w a)
+
+instance HasArmStatics Moment where
+  armStatics =
+    armStatic
+
+instance SetArmStatic Moment where
+  setArmStatic =
+    armStatic
+
+sumMomentAxes ::
+  (HasMoment moment, Foldable f) =>
+  f moment
+  -> Moment
+sumMomentAxes m =
+  let sumaxis g m' = 
+        foldMap (view (moment . g)) m'
+      w =
+        sumaxis weight m
+      a =
+        sumaxis armStatic m
+  in  Moment w a
