@@ -47,7 +47,7 @@ import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
 
 import Data.Aviation.Cessna172.Preflight.MeasuredArm(MeasuredArm, MeasuredArmStatic, HasMeasuredArmStatic(measuredArmStatic), rangeMeasuredArm, staticMeasuredArm, (.->.))
-import qualified Data.Aviation.Cessna172.Preflight.Weight as W
+import Data.Aviation.Cessna172.Preflight.Weight
 import Data.Aviation.Units(inches, pounds, kilograms)
 
 data C172Arms a =
@@ -85,20 +85,6 @@ instance Traversable C172Arms where
   traverse k (C172Arms t r f a b) =
     C172Arms <$> k t <*> k r <*> k f <*> k a <*> k b
 
-data Weight =
-  Weight
-    Rational -- todo units
-  deriving (Eq, Ord, Show)
-
-makeWrapped ''Weight
-makeClassy ''Weight
-
-instance Monoid Weight where
-  mempty =
-    Weight 0
-  Weight a `mappend` Weight b =
-    Weight (a + b)
-    
 c172ArmsPOH ::
   C172Arms MeasuredArm
 c172ArmsPOH =
@@ -124,17 +110,17 @@ instance Monoid Moment where
     Moment (a + b)
 
 calculateMoment ::
-  (HasMeasuredArmStatic arm, W.HasWeight weight) =>
+  (HasMeasuredArmStatic arm, HasWeight weight) =>
   arm
   -> weight
   -> Moment
 calculateMoment a w =
   let a' = review inches (view measuredArmStatic a)
-      w' = review pounds (view W.weight w)
+      w' = review pounds (view weight w)
   in  Moment (a' * w')
   
 calculateMoments ::
-  (Applicative f, HasMeasuredArmStatic arm, W.HasWeight weight) =>
+  (Applicative f, HasMeasuredArmStatic arm, HasWeight weight) =>
   f arm
   -> f weight
   -> f Moment
@@ -194,8 +180,8 @@ vhafrMeasuredArms =
   c172MeasuredArms (39.37 ^. inches)
 
 vhafrWeight ::
-  C172Arms W.Weight
-  -> C172AircraftArms W.Weight
+  C172Arms Weight
+  -> C172AircraftArms Weight
 vhafrWeight =
   C172AircraftArms
     (1684.3 ^. pounds)
@@ -206,8 +192,8 @@ vhlseMeasuredArms =
   c172MeasuredArms (40.6 ^. inches)
 
 vhlseWeight ::
-  C172Arms W.Weight
-  -> C172AircraftArms W.Weight
+  C172Arms Weight
+  -> C172AircraftArms Weight
 vhlseWeight =
   C172AircraftArms
     (1691.6 ^. pounds)
@@ -215,22 +201,22 @@ vhlseWeight =
 ----
 
 sumArmsAndWeight ::
-  (HasMeasuredArmStatic arm, W.HasWeight weight, Foldable f, Applicative f) =>
+  (HasMeasuredArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
   f arm
   -> f weight
   -> Point 2 Rational
 sumArmsAndWeight a w =
-  let (Moment m, x) = (fold (calculateMoments a w), foldMap (view W.weight) w)
+  let (Moment m, x) = (fold (calculateMoments a w), foldMap (view weight) w)
   in  point2 m (review pounds x)
   
 vhafrArmsAndWeight ::
-  C172Arms W.Weight
+  C172Arms Weight
   -> Point 2 Rational
 vhafrArmsAndWeight =
   sumArmsAndWeight vhafrMeasuredArms . vhafrWeight
 
 vhlseArmsAndWeight ::
-  C172Arms W.Weight
+  C172Arms Weight
   -> Point 2 Rational
 vhlseArmsAndWeight =
   sumArmsAndWeight vhlseMeasuredArms . vhlseWeight
@@ -238,7 +224,7 @@ vhlseArmsAndWeight =
 ----
 
 sampleC172ArmWeights ::
-  C172Arms W.Weight
+  C172Arms Weight
 sampleC172ArmWeights =
   C172Arms
     (363.763 ^. pounds)
@@ -248,7 +234,7 @@ sampleC172ArmWeights =
     (2.20462 ^. pounds)
 
 sampleC172ArmWeights2 ::
-  C172Arms W.Weight
+  C172Arms Weight
 sampleC172ArmWeights2 =
   C172Arms
     (80 ^. kilograms <> 85 ^. kilograms) -- Tony + George
@@ -258,7 +244,7 @@ sampleC172ArmWeights2 =
     mempty
 
 sampleC172ArmWeights3 ::
-  C172Arms W.Weight
+  C172Arms Weight
 sampleC172ArmWeights3 =
   C172Arms
     (80 ^. kilograms <> 55 ^. kilograms) -- Tony + Jess
