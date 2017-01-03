@@ -47,7 +47,7 @@ import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
 
 import Data.Aviation.Cessna172.Preflight.MeasuredArm(MeasuredArm, MeasuredArmStatic, HasMeasuredArmStatic(measuredArmStatic), rangeMeasuredArm, staticMeasuredArm, (.->.))
-import Data.Aviation.Cessna172.Preflight.Weight
+import Data.Aviation.Cessna172.Preflight.Weight(Weight, HasWeight(weight))
 import Data.Aviation.Units(inches, pounds, kilograms)
 
 data C172Arms a =
