@@ -15,7 +15,7 @@ import Control.Monad.State(State)
 import Data.Foldable(toList)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2(V2), black, red, local, _fontSize, rotateBy, mkSizeSpec, (#))
+import Diagrams.Prelude(V2(V2), black, red, darkgreen, local, _fontSize, rotateBy, mkSizeSpec, (#), fc)
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
 import Diagrams.Combinators(sep)
@@ -34,7 +34,6 @@ import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
-import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
 import Data.Geometry.Point(Point, point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundaryEdges, outerBoundary)
@@ -46,6 +45,7 @@ import Data.Aviation.Cessna172.Preflight.Arm(Arm, ArmStatic, HasArmStatic(armSta
 import Data.Aviation.Cessna172.Preflight.Moment
 import Data.Aviation.Cessna172.Preflight.Weight(Weight)
 import Data.Aviation.Units(inches, pounds, kilograms)
+import Text.Printf
 
 data C172Arms a =
   C172Arms {
@@ -91,8 +91,6 @@ c172ArmsPOH =
     (staticArm (48 ^. inches))
     (rangeArm (95 ^. inches) (82 ^. inches .->. 108 ^. inches))
     (rangeArm (123 ^. inches) (108 ^. inches .->. 142 ^. inches))
-
-----
 
 data C172AircraftArms a =
   C172AircraftArms {
@@ -147,41 +145,6 @@ c172Moment ::
 c172Moment wt b =
   (\w -> Moment w . view armStatic) <$> wt <*> b
 
-vhafrWeight ::
-  C172Arms Weight
-  -> C172AircraftArms Weight
-vhafrWeight =
-  C172AircraftArms
-    (1684.3 ^. pounds)
-
-vhafrArms ::
-  C172AircraftArms Arm
-vhafrArms =
-  c172ArmsAircraft (39.37 ^. inches)
-
-vhafrMoment ::
-  C172Arms Weight
-  -> C172AircraftArms Moment
-vhafrMoment wt =
-  c172Moment (vhafrWeight wt) vhafrArms
-
-vhlseWeight ::
-  C172Arms Weight
-  -> C172AircraftArms Weight
-vhlseWeight =
-  C172AircraftArms
-    (1691.6 ^. pounds)
-
-vhlseArms ::
-  C172AircraftArms Arm
-vhlseArms =
-  c172ArmsAircraft (40.6 ^. inches)
-
-vhlseMoment ::
-  C172Arms Weight
-  -> C172AircraftArms Moment
-vhlseMoment wt =
-  c172Moment (vhlseWeight wt) vhlseArms
 
 ----
 
@@ -191,51 +154,9 @@ totalMomentPoundInchesPoint ::
   -> Point 2 Rational
 totalMomentPoundInchesPoint x =
   let Moment w a = totalMoment pounds inches x
-  in  point2 (review inches a) (review pounds w)
-
-vhafrArmsAndWeight ::
-  C172Arms Weight
-  -> Point 2 Rational
-vhafrArmsAndWeight =
-  totalMomentPoundInchesPoint . vhafrMoment
-
-vhlseArmsAndWeight ::
-  C172Arms Weight
-  -> Point 2 Rational
-vhlseArmsAndWeight =
-  totalMomentPoundInchesPoint . vhlseMoment
+  in  point2 (review inches a / 1000) (review pounds w) -- TODO thouinches
 
 ----
-
-sampleC172ArmWeights ::
-  C172Arms Weight
-sampleC172ArmWeights =
-  C172Arms
-    (363.763 ^. pounds)
-    (176.37 ^. pounds)
-    (180 ^. pounds)
-    (22.0462 ^. pounds)
-    (2.20462 ^. pounds)
-
-sampleC172ArmWeights2 ::
-  C172Arms Weight
-sampleC172ArmWeights2 =
-  C172Arms
-    (80 ^. kilograms <> 85 ^. kilograms) -- Tony + George
-    (55 ^. kilograms) -- Jess
-    (336 ^. pounds) -- max fuel
-    (10 ^. kilograms)
-    mempty
-
-sampleC172ArmWeights3 ::
-  C172Arms Weight
-sampleC172ArmWeights3 =
-  C172Arms
-    (80 ^. kilograms <> 55 ^. kilograms) -- Tony + Jess
-    (85 ^. kilograms) -- George
-    (336 ^. pounds) -- max fuel
-    (10 ^. kilograms)
-    mempty
 
 -- baggage "A" maximum 120lb
 -- baggage "B" maximum 50lb
@@ -287,41 +208,6 @@ nearestPoints ::
   -> CSeq (Rational, Point 2 Rational)
 nearestPoints y p =
   sqDistanceToArg p . supportingLine <$> outerBoundaryEdges y
-
-{-
-
--- https://hackage.haskell.org/package/hgeometry-0.5.0.0/docs/Data-Geometry-Polygon.html
-
--}
-----
-
-samplePolygon :: 
-  SimplePolygon () Rational
-samplePolygon =
-  fromPoints . map ext $
-    [
-      point2 2 1
-    , point2 5 7
-    , point2 8 10
-    , point2 9 10
-    , point2 7 4
-    , point2 5 2
-    ]    
-
-testinpolygon ::
-  [PointLocationResult]
-testinpolygon =
-  [
-    point2 0 0 `inPolygon` samplePolygon
-  , point2 1 1 `inPolygon` samplePolygon
-  , point2 10 0 `inPolygon` samplePolygon
-  , point2 5 13 `inPolygon` samplePolygon
-  , point2 5 10 `inPolygon` samplePolygon
-  , point2 10 5 `inPolygon` samplePolygon
-  , point2 20 5 `inPolygon` samplePolygon
-  ]
-
----- TODR/LDR
 
 ---- 
 ---- Moment Envelope
@@ -401,7 +287,7 @@ crosshairplot ::
   Point 2 Rational
   -> Axis b V2 Double
 crosshairplot pq =
-  let (p, q) = _point2 pq & _1 %~ (/ 1000)
+  let (p, q) = _point2 pq
       crosshair = [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
       draw = mapM_ (\xx -> map (over both fromRational) xx `linePlot`
                              do  plotColor .= red
@@ -409,26 +295,96 @@ crosshairplot pq =
                            ) crosshair
   in  plot draw
 
-result ::
-  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
-  Axis b V2 Double
-result =
-  crosshairplot (vhlseArmsAndWeight sampleC172ArmWeights3)
-
 renderResult ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
-  QDiagram b V2 Double Any
-renderResult = 
-  vcat' (with & sep .~ 5)
-    [
-      renderAxis result # centerX # dejavuSansMono
-    , hrule 10
-    , alignedText (1.8) (0.25) "this is some text\nthis is some more\nand more..." # fontSizeL 6 # dejavuSansMono]
+  Point 2 Rational
+  -> QDiagram b V2 Double Any
+renderResult p = 
+  renderAxis (crosshairplot p) # centerX # dejavuSansMono
+   
+renderTextResult ::
+  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
+  Point 2 Rational
+  -> QDiagram b V2 Double Any
+renderTextResult pq =
+  let (p, q) =
+        _point2 pq
+      textRational r =
+        printf "%0.2f" (fromRational r :: Double)
+  in  vcat' (with & sep .~ 15)
+        [
+          renderResult pq
+         -- coordinates of point
+         -- in which CG envelope
+          , alignedText (0.93) (-1.65) ("Moment " ++ textRational (p * 1000) ++ " pound/inches") # fontSizeL 6 # dejavuSansMono # fc red
+          , alignedText (0.96) (-2.20) ("All Up Weight " ++ textRational q ++ " pounds") # fontSizeL 6 # dejavuSansMono # fc red
+        ]
+
+----
+
+sampleC172ArmWeights ::
+  C172Arms Weight
+sampleC172ArmWeights =
+  C172Arms
+    (80 ^. kilograms <> 55 ^. kilograms) -- Tony + Jess
+    (85 ^. kilograms) -- George
+    (336 ^. pounds) -- max fuel
+    (10 ^. kilograms)
+    mempty
+
+vhafrMomentPoint ::
+  C172Arms Weight
+  -> Point 2 Rational
+vhafrMomentPoint =
+  totalMomentPoundInchesPoint . vhafrMoment
+
+vhlseMomentPoint ::
+  C172Arms Weight
+  -> Point 2 Rational
+vhlseMomentPoint =
+  totalMomentPoundInchesPoint . vhlseMoment
+
+vhafrWeight ::
+  C172Arms Weight
+  -> C172AircraftArms Weight
+vhafrWeight =
+  C172AircraftArms
+    (1684.3 ^. pounds)
+
+vhafrArms ::
+  C172AircraftArms Arm
+vhafrArms =
+  c172ArmsAircraft (39.37 ^. inches)
+
+vhafrMoment ::
+  C172Arms Weight
+  -> C172AircraftArms Moment
+vhafrMoment wt =
+  c172Moment (vhafrWeight wt) vhafrArms
+
+vhlseWeight ::
+  C172Arms Weight
+  -> C172AircraftArms Weight
+vhlseWeight =
+  C172AircraftArms
+    (1691.6 ^. pounds)
+
+vhlseArms ::
+  C172AircraftArms Arm
+vhlseArms =
+  c172ArmsAircraft (40.6 ^. inches)
+
+vhlseMoment ::
+  C172Arms Weight
+  -> C172AircraftArms Moment
+vhlseMoment wt =
+  c172Moment (vhlseWeight wt) vhlseArms
 
 main ::
   IO ()
 main =
-  let pngoptions = CairoOptions
+  let example = vhlseMomentPoint sampleC172ArmWeights
+      pngoptions = CairoOptions
                   "dist/output.png"
                   (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
                   PNG
@@ -448,4 +404,4 @@ main =
                   (mkSizeSpec (V2 Nothing Nothing))
                   SVG
                   False                  
-  in  mapM_ (\o -> fst (renderDia Cairo o renderResult)) [pngoptions, psoptions, pdfoptions, svgoptions]
+  in  mapM_ (\o -> fst (renderDia Cairo o (renderTextResult example))) [pngoptions, psoptions, pdfoptions, svgoptions]
