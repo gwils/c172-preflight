@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper(
   MeasuredArmRangeUpper
@@ -17,12 +18,12 @@ import Data.Maybe(Maybe)
 import Data.Ord(Ord)
 import Data.Ratio((%))
 import Numeric.Lens(dividing)
-import Prelude(Show, Rational)
+import Prelude(Show, Rational, Num, Real, Fractional, RealFrac)
 
 newtype MeasuredArmRangeUpper =
   MeasuredArmRangeUpper
     Rational
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Num, Real, Fractional, RealFrac)
 
 makeClassy ''MeasuredArmRangeUpper
 
@@ -60,6 +61,5 @@ instance Inches MeasuredArmRangeUpper where
 
 instance Centimetres MeasuredArmRangeUpper where
   centimetres =
-    let rate = 254 % 100
-    in  dividing rate . inches
+    dividing (254 % 100) . inches
     

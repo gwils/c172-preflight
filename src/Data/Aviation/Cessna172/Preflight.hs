@@ -11,7 +11,7 @@ module Data.Aviation.Cessna172.Preflight where
 
 import Prelude
 import Control.Applicative(liftA2)
-import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (&), _1)
+import Control.Lens(Prism', Lens', makeClassy, makeWrapped, _Wrapped, prism', lens, view, review, set, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (%~), (.~), (^.), (&), _1)
 import Control.Monad.State(State)
 import Data.Foldable(toList, fold)
 import Data.Monoid(Any)
@@ -44,6 +44,9 @@ import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
 import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
+
+import qualified Data.Aviation.Cessna172.Preflight.MeasuredArm as Q
+import qualified Data.Aviation.Units as U
 
 data MeasuredArm =
   MeasuredArm {
@@ -111,34 +114,15 @@ instance Monoid Weight where
     Weight (a + b)
     
 c172ArmsPOH ::
-  C172Arms MeasuredArm
+  C172Arms Q.MeasuredArm
 c172ArmsPOH =
   C172Arms
-    (MeasuredArm 37 (Just (34, 46)))
-    (measuredArmNorange 48)
-    (measuredArmNorange 73)
-    (MeasuredArm 95 (Just (82, 108)))
-    (MeasuredArm 123 (Just (108, 142)))
-
-applying ::
-  Applicative f =>
-  Lens' a b
-  -> Lens' (f a) (f b)
-applying k =
-  lens (fmap (view k)) (\c1 c2 -> flip (set k) <$> c1 <*> c2)
-
-applyingMeasuredArm ::
-  (Applicative f, HasMeasuredArm a) =>
-  Lens' (f a) (f MeasuredArm)
-applyingMeasuredArm = 
-  applying measuredArm
-
-applyingWeight ::
-  (Applicative f, HasWeight a) =>
-  Lens' (f a) (f Weight)
-applyingWeight = 
-  applying weight
-
+    (Q.rangeMeasuredArm (37 ^. U.inches) (34 ^. U.inches Q..->. 46 ^. U.inches))
+    (Q.staticMeasuredArm (48 ^. U.inches))
+    (Q.staticMeasuredArm (73 ^. U.inches))
+    (Q.rangeMeasuredArm (95 ^. U.inches) (82 ^. U.inches Q..->. 108 ^. U.inches))
+    (Q.rangeMeasuredArm (123 ^. U.inches) (108 ^. U.inches Q..->. 142 ^. U.inches))
+  
 newtype Moment =
   Moment
     Rational
@@ -154,15 +138,16 @@ instance Monoid Moment where
     Moment (a + b)
 
 calculateMoment ::
-  (HasMeasuredArm arm, HasWeight weight) =>
+  (Q.HasMeasuredArmStatic arm, HasWeight weight) =>
   arm
   -> weight
   -> Moment
 calculateMoment a w =
-  Moment (view armmeasure a * view (weight . _Wrapped) w)
-
+  let i = review U.inches (view Q.measuredArmStatic a)
+  in  Moment (i * view (weight . _Wrapped) w)
+  
 calculateMoments ::
-  (Applicative f, HasMeasuredArm arm, HasWeight weight) =>
+  (Applicative f, Q.HasMeasuredArmStatic arm, HasWeight weight) =>
   f arm
   -> f weight
   -> f Moment
@@ -209,17 +194,17 @@ instance Traversable C172AircraftArms where
 ----
 
 c172MeasuredArms ::
-  Rational
-  -> C172AircraftArms MeasuredArm
+  Q.MeasuredArmStatic
+  -> C172AircraftArms Q.MeasuredArm
 c172MeasuredArms a =
   C172AircraftArms
-    (measuredArmNorange a)
+    (Q.staticMeasuredArm a)
     c172ArmsPOH
 
 vhafrMeasuredArms ::
-  C172AircraftArms MeasuredArm
+  C172AircraftArms Q.MeasuredArm
 vhafrMeasuredArms =
-  c172MeasuredArms 39.37
+  c172MeasuredArms (39.37 ^. U.inches)
 
 vhafrWeight ::
   C172Arms Weight
@@ -229,9 +214,9 @@ vhafrWeight =
     (Weight 1684.3)
     
 vhlseMeasuredArms ::
-  C172AircraftArms MeasuredArm
+  C172AircraftArms Q.MeasuredArm
 vhlseMeasuredArms =
-  c172MeasuredArms 40.6
+  c172MeasuredArms (40.6 ^. U.inches)
 
 vhlseWeight ::
   C172Arms Weight
@@ -243,13 +228,13 @@ vhlseWeight =
 ----
 
 sumArmsAndWeight ::
-  (HasWeight weight, HasMeasuredArm arm, Foldable f, Applicative f) =>
+  (Q.HasMeasuredArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
   f arm
   -> f weight
   -> Point 2 Rational
 sumArmsAndWeight a w =
   let (Moment m, Weight x) = (fold (calculateMoments a w), foldMap (view weight) w)
-  in  point2 (m) x
+  in  point2 m x
 
 vhafrArmsAndWeight ::
   C172Arms Weight
@@ -263,20 +248,6 @@ vhlseArmsAndWeight ::
 vhlseArmsAndWeight =
   sumArmsAndWeight vhlseMeasuredArms . vhlseWeight
 
-{-
-
-
-vhafrMeasuredArms ::
-  C172AircraftArms MeasuredArm
-vhafrMeasuredArms =
-  c172MeasuredArms 39.37
-
-vhafrWeight ::
-  C172Arms Weight
-  -> C172AircraftArms Weight
-vhafrWeight =
-
--}
 ----
 
 sampleC172ArmWeights ::
