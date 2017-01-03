@@ -40,13 +40,15 @@ import Data.Geometry.Boundary(PointLocationResult)
 import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
 import Data.Geometry.Point(Point(Point), point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundaryEdges, outerBoundary)
+import Data.Semigroup((<>))
 import Data.Geometry.Vector(Arity, Vector(Vector))
 import qualified Data.Vector.Fixed as FV(length)
 import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Plots.Axis.Render(renderAxis)
 
 import Data.Aviation.Cessna172.Preflight.MeasuredArm(MeasuredArm, MeasuredArmStatic, HasMeasuredArmStatic(measuredArmStatic), rangeMeasuredArm, staticMeasuredArm, (.->.))
-import Data.Aviation.Units(inches)
+import qualified Data.Aviation.Cessna172.Preflight.Weight as W
+import Data.Aviation.Units(inches, pounds, kilograms)
 
 data C172Arms a =
   C172Arms {
@@ -122,16 +124,17 @@ instance Monoid Moment where
     Moment (a + b)
 
 calculateMoment ::
-  (HasMeasuredArmStatic arm, HasWeight weight) =>
+  (HasMeasuredArmStatic arm, W.HasWeight weight) =>
   arm
   -> weight
   -> Moment
 calculateMoment a w =
-  let i = review inches (view measuredArmStatic a)
-  in  Moment (i * view (weight . _Wrapped) w)
+  let a' = review inches (view measuredArmStatic a)
+      w' = review pounds (view W.weight w)
+  in  Moment (a' * w')
   
 calculateMoments ::
-  (Applicative f, HasMeasuredArmStatic arm, HasWeight weight) =>
+  (Applicative f, HasMeasuredArmStatic arm, W.HasWeight weight) =>
   f arm
   -> f weight
   -> f Moment
@@ -191,11 +194,11 @@ vhafrMeasuredArms =
   c172MeasuredArms (39.37 ^. inches)
 
 vhafrWeight ::
-  C172Arms Weight
-  -> C172AircraftArms Weight
+  C172Arms W.Weight
+  -> C172AircraftArms W.Weight
 vhafrWeight =
   C172AircraftArms
-    (Weight 1684.3)
+    (1684.3 ^. pounds)
     
 vhlseMeasuredArms ::
   C172AircraftArms MeasuredArm
@@ -203,31 +206,31 @@ vhlseMeasuredArms =
   c172MeasuredArms (40.6 ^. inches)
 
 vhlseWeight ::
-  C172Arms Weight
-  -> C172AircraftArms Weight
+  C172Arms W.Weight
+  -> C172AircraftArms W.Weight
 vhlseWeight =
   C172AircraftArms
-    (Weight 1691.6)
+    (1691.6 ^. pounds)
 
 ----
 
 sumArmsAndWeight ::
-  (HasMeasuredArmStatic arm, HasWeight weight, Foldable f, Applicative f) =>
+  (HasMeasuredArmStatic arm, W.HasWeight weight, Foldable f, Applicative f) =>
   f arm
   -> f weight
   -> Point 2 Rational
 sumArmsAndWeight a w =
-  let (Moment m, Weight x) = (fold (calculateMoments a w), foldMap (view weight) w)
-  in  point2 m x
-
+  let (Moment m, x) = (fold (calculateMoments a w), foldMap (view W.weight) w)
+  in  point2 m (review pounds x)
+  
 vhafrArmsAndWeight ::
-  C172Arms Weight
+  C172Arms W.Weight
   -> Point 2 Rational
 vhafrArmsAndWeight =
   sumArmsAndWeight vhafrMeasuredArms . vhafrWeight
 
 vhlseArmsAndWeight ::
-  C172Arms Weight
+  C172Arms W.Weight
   -> Point 2 Rational
 vhlseArmsAndWeight =
   sumArmsAndWeight vhlseMeasuredArms . vhlseWeight
@@ -235,37 +238,34 @@ vhlseArmsAndWeight =
 ----
 
 sampleC172ArmWeights ::
-  C172Arms Weight
+  C172Arms W.Weight
 sampleC172ArmWeights =
-  Weight <$>
-    C172Arms
-      363.763
-      176.37
-      180
-      22.0462
-      2.20462
+  C172Arms
+    (363.763 ^. pounds)
+    (176.37 ^. pounds)
+    (180 ^. pounds)
+    (22.0462 ^. pounds)
+    (2.20462 ^. pounds)
 
 sampleC172ArmWeights2 ::
-  C172Arms Weight
+  C172Arms W.Weight
 sampleC172ArmWeights2 =
-  Weight <$>
-    C172Arms
-      (176.37 + 187.393) -- Tony + George
-      108.027 -- Jess
-      336 -- max fuel
-      22.0462
-      0
+  C172Arms
+    (80 ^. kilograms <> 85 ^. kilograms) -- Tony + George
+    (55 ^. kilograms) -- Jess
+    (336 ^. pounds) -- max fuel
+    (10 ^. kilograms)
+    mempty
 
 sampleC172ArmWeights3 ::
-  C172Arms Weight
+  C172Arms W.Weight
 sampleC172ArmWeights3 =
-  Weight <$>
-    C172Arms
-      (176.37 + 108.027) -- Tony + Jess
-      187.393 -- George
-      336 -- max fuel
-      22.0462
-      0
+  C172Arms
+    (80 ^. kilograms <> 55 ^. kilograms) -- Tony + Jess
+    (85 ^. kilograms) -- George
+    (336 ^. pounds) -- max fuel
+    (10 ^. kilograms)
+    mempty
 
 -- baggage "A" maximum 120lb
 -- baggage "B" maximum 50lb

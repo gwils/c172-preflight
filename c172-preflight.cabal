@@ -54,6 +54,8 @@ library
                     Data.Aviation.Units
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
+                    Data.Aviation.Units.Kilograms
+                    Data.Aviation.Units.Pounds
                     Data.Aviation.Cessna172.Preflight
                     Data.Aviation.Cessna172.Preflight.MeasuredArm
                     Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArm
@@ -61,6 +63,7 @@ library
                     Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeLower
                     Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmStatic
                     Data.Aviation.Cessna172.Preflight.MeasuredArm.MeasuredArmRangeUpper
+                    Data.Aviation.Cessna172.Preflight.Weight
 
 test-suite doctests
   type:
