@@ -1,11 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 module Data.Aviation.Cessna172.Preflight.Moment(
-  Moment
+  Moment(..)
 , HasMoment(..)
 , HasMoments(..)
 , SetMoment(..)
