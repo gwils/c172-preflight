@@ -2,9 +2,9 @@ name:               c172-preflight
 version:            0.0.1
 license:            BSD3
 license-file:       LICENSE
-author:             Tony Morris <ʇǝu˙sıɹɹoɯʇ@ןןǝʞsɐɥ>
-maintainer:         Tony Morris
-copyright:          Copyright (c) 2016 Tony Morris
+author:             Tony Morris <ʇǝu˙sıɹɹoɯʇ@ןןǝʞsɐɥ>, Joshua Morris <ɯoɔ˙lᴉɐɯƃ@llǝʞsɐɥ+sᴉɹɹoɯuɥoɾɐnɥsoɾ>
+maintainer:         Tony Morris, Joshua Morris
+copyright:          Copyright (c) 2017 Tony Morris, Joshua Morris
 synopsis:           JSON parser.
 category:           Aviation
 description:        Pre-flight checks for Cessna 172
@@ -56,6 +56,7 @@ library
                     Data.Aviation.C172.C172AircraftArms
                     Data.Aviation.C172.C172Arms
                     Data.Aviation.C172.C172MomentEnvelope
+                    Data.Aviation.C172.Diagrams
                     Data.Aviation.Units
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
