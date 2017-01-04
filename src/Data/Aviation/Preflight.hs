@@ -15,7 +15,6 @@ import Diagrams.Prelude(V2(V2), mkSizeSpec)
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
 import Diagrams.Core.Compile(renderDia)
-import Diagrams.TwoD.Combinators(vcat)
 import Data.Geometry.Point(Point, point2)
 import Data.Geometry.Polygon(SimplePolygon)
 import Data.Semigroup((<>))
@@ -51,7 +50,7 @@ sampleC172ArmWeights =
   C172Arms
     (80 ^. kilograms <> 55 ^. kilograms) -- Tony + Jess
     (85 ^. kilograms) -- George
-    (336 ^. pounds) -- max fuel
+    (306 ^. pounds)
     (10 ^. kilograms)
     mempty
 
