@@ -10,7 +10,7 @@
 module Data.Aviation.Preflight where
 
 import Prelude
-import Control.Lens(makeClassy, lens, view, review, over, both, set, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))
+import Control.Lens(view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))
 import Control.Monad.State(State)
 import Data.Foldable(toList)
 import Data.Monoid(Any)
@@ -35,112 +35,15 @@ import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
 import Data.Geometry.Point(Point, point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Semigroup((<>))
-import Data.Aviation.WB(Arm, ArmStatic, rangeArm, staticArm, (.->.), Moment(Moment), HasMoment, totalMoment, momentX, Weight, Zerofuel(zerofuel))
+import Data.Aviation.C172(C172Arms(C172Arms), C172AircraftArms(C172AircraftArms), c172ArmsAircraft)
 import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
+import Data.Aviation.WB(Arm, Moment(Moment), HasMoment, totalMoment, momentX, Weight)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Plots.Axis.Render(renderAxis)
 import Text.Printf
-
-data C172Arms a =
-  C172Arms {
-    _frontseat ::
-      a
-  , _rearseat ::
-      a
-  , _fuel ::
-      a
-  , _baggagea ::
-      a
-  , _baggageb ::
-      a
-  }
-  deriving (Eq, Ord, Show)
-
-makeClassy ''C172Arms
-
-instance Monoid a => Zerofuel (C172Arms a) where
-  zerofuel =
-    set fuel mempty
-
-instance Functor C172Arms where
-  fmap k (C172Arms t r f a b) =
-    C172Arms (k t) (k r) (k f) (k a) (k b)
-
-instance Applicative C172Arms where
-  pure a =
-    C172Arms a a a a a
-  C172Arms f1 f2 f3 f4 f5 <*> C172Arms a1 a2 a3 a4 a5 =
-    C172Arms (f1 a1) (f2 a2) (f3 a3) (f4 a4) (f5 a5)
-
-instance Foldable C172Arms where
-  foldr k z (C172Arms t r f a b) =
-    foldr k z [t,r,f,a,b]
-
-instance Traversable C172Arms where
-  traverse k (C172Arms t r f a b) =
-    C172Arms <$> k t <*> k r <*> k f <*> k a <*> k b
-
-c172ArmsPOH ::
-  C172Arms Arm
-c172ArmsPOH =
-  C172Arms
-    (rangeArm (37 ^. inches) (34 ^. inches .->. 46 ^. inches))
-    (staticArm (73 ^. inches))
-    (staticArm (48 ^. inches))
-    (rangeArm (95 ^. inches) (82 ^. inches .->. 108 ^. inches))
-    (rangeArm (123 ^. inches) (108 ^. inches .->. 142 ^. inches))
-
-data C172AircraftArms a =
-  C172AircraftArms {
-    _aircraftArm ::
-      a
-  , c172Arms_ ::
-      C172Arms a
-  }
-  deriving (Eq, Ord, Show)
-
-makeClassy ''C172AircraftArms
-
-instance Monoid a => Zerofuel (C172AircraftArms a) where
-  zerofuel =
-    set fuel mempty
-
-instance HasC172Arms (C172AircraftArms a) a where
-  c172Arms =
-    lens
-      (\(C172AircraftArms _ c) -> c)
-      (\(C172AircraftArms c _) a -> C172AircraftArms c a)
-
-instance Functor C172AircraftArms where
-  fmap k (C172AircraftArms c x) =
-    C172AircraftArms (k c) (fmap k x)
-
-instance Applicative C172AircraftArms where
-  pure a =
-    C172AircraftArms a (pure a)
-  C172AircraftArms c1 c2 <*> C172AircraftArms x1 x2 =
-    C172AircraftArms (c1 x1) (c2 <*> x2)
-
-instance Foldable C172AircraftArms where
-  foldr k z (C172AircraftArms c x) =
-    k c (foldr k z x)
-
-instance Traversable C172AircraftArms where
-  traverse k (C172AircraftArms c x) =
-    C172AircraftArms <$> k c <*> traverse k x
-
-----
-
-c172ArmsAircraft ::
-  ArmStatic
-  -> C172AircraftArms Arm
-c172ArmsAircraft a =
-  C172AircraftArms
-    (staticArm a)
-    c172ArmsPOH
 
 
 ----

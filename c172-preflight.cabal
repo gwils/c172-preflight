@@ -52,7 +52,16 @@ library
                     src
 
   exposed-modules:
+                    Data.Aviation.C172
+                    Data.Aviation.C172.C172AircraftArms
+                    Data.Aviation.C172.C172Arms
                     Data.Aviation.Units
+                    Data.Aviation.Units.Centimetres
+                    Data.Aviation.Units.Inches
+                    Data.Aviation.Units.Kilograms
+                    Data.Aviation.Units.Pounds
+                    Data.Aviation.Units.Poundinches
+                    Data.Aviation.Units.Thouinches
                     Data.Aviation.WB
                     Data.Aviation.WB.Arm
                     Data.Aviation.WB.Arm.Arm
@@ -63,12 +72,6 @@ library
                     Data.Aviation.WB.Moment
                     Data.Aviation.WB.Weight
                     Data.Aviation.WB.Zerofuel
-                    Data.Aviation.Units.Centimetres
-                    Data.Aviation.Units.Inches
-                    Data.Aviation.Units.Kilograms
-                    Data.Aviation.Units.Pounds
-                    Data.Aviation.Units.Poundinches
-                    Data.Aviation.Units.Thouinches
                     
                     Data.Aviation.Preflight
                     Data.Aviation.TakeoffLanding
