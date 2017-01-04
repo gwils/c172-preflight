@@ -11,7 +11,7 @@ module Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(
 
 import Control.Category((.))
 import Control.Lens(Lens', Traversal', Setter', makeClassy, iso)
-import Data.Aviation.Units(Inches(inches), Centimetres(centimetres))
+import Data.Aviation.Units(Inches(inches), Centimetres(centimetres), Thouinches(thouinches))
 import Data.Eq(Eq)
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid(mempty, mappend))
@@ -59,6 +59,10 @@ instance Inches ArmStatic where
     iso
       ArmStatic
       (\(ArmStatic x) -> x)
+
+instance Thouinches ArmStatic where
+  thouinches =
+    dividing 1000 . inches
 
 instance Centimetres ArmStatic where
   centimetres =

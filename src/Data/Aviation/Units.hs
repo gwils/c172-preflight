@@ -7,3 +7,4 @@ import Data.Aviation.Units.Inches as A
 import Data.Aviation.Units.Kilograms as A
 import Data.Aviation.Units.Pounds as A
 import Data.Aviation.Units.Poundinches as A
+import Data.Aviation.Units.Thouinches as A

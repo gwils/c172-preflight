@@ -320,15 +320,15 @@ renderTextResult pq =
         "NO"
       textPointLocationResult OnBoundary = 
         "NO"
+      reporttext a b x =
+        alignedText a b x # fontSizeL 6 # dejavuSansMono # fc red
   in  vcat' (with & sep .~ 15)
         [
           renderResult pq
-         -- coordinates of point
-         -- in which CG envelope
-          , alignedText (0.650) (-1.65) ("Moment              " ++ textRational (p * 1000) ++ " pound/inches") # fontSizeL 6 # dejavuSansMono # fc red
-          , alignedText (0.805) (-2.20) ("All Up Weight       " ++ textRational q ++ " pounds") # fontSizeL 6 # dejavuSansMono # fc red
-          , alignedText (1.245) (-2.20) ("Utility Category    " ++ textPointLocationResult utility) # fontSizeL 6 # dejavuSansMono # fc red
-          , alignedText (1.190) (-2.80) ("Normal Category     " ++ textPointLocationResult normal) # fontSizeL 6 # dejavuSansMono # fc red
+          , reporttext (0.650) (-1.65) ("Moment              " ++ textRational (p * 1000) ++ " pound/inches")
+          , reporttext (0.805) (-2.20) ("All Up Weight       " ++ textRational q ++ " pounds")
+          , reporttext (1.245) (-2.20) ("Utility Category    " ++ textPointLocationResult utility)
+          , reporttext (1.190) (-2.80) ("Normal Category     " ++ textPointLocationResult normal)
         ]
 
 ----

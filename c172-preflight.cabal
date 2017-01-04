@@ -63,6 +63,7 @@ library
                     Data.Aviation.Units.Kilograms
                     Data.Aviation.Units.Pounds
                     Data.Aviation.Units.Poundinches
+                    Data.Aviation.Units.Thouinches
                     Data.Aviation.Cessna172.Preflight
                     Data.Aviation.Cessna172.Preflight.Moment
                     Data.Aviation.Cessna172.Preflight.Weight
