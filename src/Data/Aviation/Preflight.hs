@@ -10,7 +10,7 @@
 module Data.Aviation.Preflight where
 
 import Prelude
-import Control.Lens(view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))
+import Control.Lens(view, review, preview, over, both, _head, snoc, (&~), (.=), (*=), (%=), (.~), (^.), (&))
 import Control.Monad.State(State)
 import Data.Foldable(toList)
 import Data.Monoid(Any)
@@ -105,20 +105,6 @@ c172sUtilityCategory =
 ---- 
 ---- Moment Envelope
 
-
-snochead ::
-  forall s a.
-  (Cons s s a a, Snoc s s a a) =>
-  s
-  -> s
-snochead x = 
-  let h = x ^? _head
-  in  case h of
-        Nothing ->
-          x
-        Just i ->
-          snoc x i
-
 polygonPoint2 ::
   Fractional b =>
   Polygon t extra Rational ->
@@ -138,7 +124,9 @@ plot ::
   State (Axis b V2 Double) a
   -> Axis b V2 Double
 plot z =
-  let linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) $ 
+  let snochead =
+        maybe <*> snoc <*> preview _head
+      linePlotPolygon x c l = (linePlot . snochead  . toList . polygonPoint2  $ x) $ 
         do  plotColor .= c
             lineStyle . _lw .= l
   in  r2Axis &~ do

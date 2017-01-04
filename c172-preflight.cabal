@@ -55,6 +55,7 @@ library
                     Data.Aviation.C172
                     Data.Aviation.C172.C172AircraftArms
                     Data.Aviation.C172.C172Arms
+                    Data.Aviation.C172.C172MomentEnvelope
                     Data.Aviation.Units
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
