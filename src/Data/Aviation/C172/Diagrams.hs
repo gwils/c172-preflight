@@ -164,17 +164,17 @@ textreportDiagram u n pq (zfw, ffw) =
       textPointLocationResult OnBoundary = 
         "NO"
       reporttext a b x c =
-        alignedText a b x # fontSizeL 3 # dejavuSansMono # fc c
+        alignedText a b x # fontSizeL 5 # dejavuSansMono # fc c
   in  vcat' (with & sep .~ 15)
         [
-            reporttext (0.970) (-04.80) ("Moment                           " <> textRational (p * 1000) <> " pound/inches") red
-          , reporttext (1.136) (-06.80) ("All Up Weight                    " <> textRational q <> " pounds") red
-          , reporttext (1.525) (-08.80) ("Utility Category                 " <> textPointLocationResult utility) red
-          , reporttext (1.483) (-10.80) ("Normal Category                  " <> textPointLocationResult normal) red
-          , reporttext (0.990) (-12.80) ("Zero Fuel Moment                 " <> textRational (zfwp * 1000) <> " pound/inches") green
-          , reporttext (1.137) (-14.80) ("Zero Fuel Weight                 " <> textRational zfwq <> " pounds") green
-          , reporttext (0.972) (-16.80) ("Fuel at Capacity Moment          " <> textRational (ffwp * 1000) <> " pound/inches") green
-          , reporttext (1.138) (-18.80) ("Fuel at Capacity Weight          " <> textRational ffwq <> " pounds") green
+            reporttext (0.570) (-02.80) ("Moment                           " <> textRational (p * 1000) <> " pound/inches") red
+          , reporttext (0.667) (-03.80) ("All Up Weight                    " <> textRational q <> " pounds") red
+          , reporttext (0.896) (-04.80) ("Utility Category                 " <> textPointLocationResult utility) red
+          , reporttext (0.871) (-05.80) ("Normal Category                  " <> textPointLocationResult normal) red
+          , reporttext (0.581) (-06.80) ("Zero Fuel Moment                 " <> textRational (zfwp * 1000) <> " pound/inches") green
+          , reporttext (0.668) (-07.80) ("Zero Fuel Weight                 " <> textRational zfwq <> " pounds") green
+          , reporttext (0.571) (-08.80) ("Fuel at Capacity Moment          " <> textRational (ffwp * 1000) <> " pound/inches") green
+          , reporttext (0.668) (-09.80) ("Fuel at Capacity Weight          " <> textRational ffwq <> " pounds") green 
         ]
  
 plotMomentDiagram :: 
