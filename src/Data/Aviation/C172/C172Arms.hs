@@ -12,9 +12,10 @@ module Data.Aviation.C172.C172Arms(
 
 import Control.Applicative(Applicative((<*>), pure))
 import Control.Lens(makeClassy, (^.), set)
-import Data.Aviation.Units(inches)
+import Data.Aviation.Units(inches, Pounds(pounds))
 import Data.Aviation.WB.Arm(Arm, (.->.), rangeArm, staticArm)
 import Data.Aviation.WB.Zerofuel(Zerofuel(zerofuel))
+import Data.Aviation.WB.Maximumfuel(Maximumfuel(maximumfuel))
 import Data.Eq(Eq)
 import Data.Foldable(Foldable(foldr))
 import Data.Functor(Functor(fmap), (<$>))
@@ -43,6 +44,10 @@ makeClassy ''C172Arms
 instance Monoid a => Zerofuel (C172Arms a) where
   zerofuel =
     set fuel mempty
+
+instance Pounds a => Maximumfuel (C172Arms a) where
+  maximumfuel =
+    set fuel (336 ^. pounds)
 
 instance Functor C172Arms where
   fmap k (C172Arms t r f a b) =
