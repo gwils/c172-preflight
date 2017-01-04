@@ -54,9 +54,6 @@ import Plots.Axis.Render(renderAxis)
 import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), (-), show, round)
 import Text.Printf(printf)
 
----- 
----- Moment Envelope
-
 dejavuSansMono ::
   HasStyle a =>
   a
