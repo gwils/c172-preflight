@@ -53,6 +53,7 @@ library
 
   exposed-modules:
                     Data.Aviation.Units
+                    Data.Aviation.WB
                     Data.Aviation.WB.Arm
                     Data.Aviation.WB.Arm.Arm
                     Data.Aviation.WB.Arm.ArmRange
@@ -61,6 +62,7 @@ library
                     Data.Aviation.WB.Arm.ArmRangeUpper
                     Data.Aviation.WB.Moment
                     Data.Aviation.WB.Weight
+                    Data.Aviation.WB.Zerofuel
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
                     Data.Aviation.Units.Kilograms

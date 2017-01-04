@@ -10,7 +10,7 @@
 module Data.Aviation.Preflight where
 
 import Prelude
-import Control.Lens(makeClassy, lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))
+import Control.Lens(makeClassy, lens, view, review, over, both, set, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))
 import Control.Monad.State(State)
 import Data.Foldable(toList)
 import Data.Monoid(Any)
@@ -35,9 +35,7 @@ import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
 import Data.Geometry.Point(Point, point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Semigroup((<>))
-import Data.Aviation.WB.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
-import Data.Aviation.WB.Moment
-import Data.Aviation.WB.Weight(Weight)
+import Data.Aviation.WB(Arm, ArmStatic, rangeArm, staticArm, (.->.), Moment(Moment), HasMoment, totalMoment, momentX, Weight, Zerofuel(zerofuel))
 import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
@@ -62,6 +60,10 @@ data C172Arms a =
   deriving (Eq, Ord, Show)
 
 makeClassy ''C172Arms
+
+instance Monoid a => Zerofuel (C172Arms a) where
+  zerofuel =
+    set fuel mempty
 
 instance Functor C172Arms where
   fmap k (C172Arms t r f a b) =
@@ -102,6 +104,10 @@ data C172AircraftArms a =
 
 makeClassy ''C172AircraftArms
 
+instance Monoid a => Zerofuel (C172AircraftArms a) where
+  zerofuel =
+    set fuel mempty
+
 instance HasC172Arms (C172AircraftArms a) a where
   c172Arms =
     lens
@@ -135,14 +141,6 @@ c172ArmsAircraft a =
   C172AircraftArms
     (staticArm a)
     c172ArmsPOH
-
-c172Moment :: 
-  (HasArmStatic s, Applicative f) =>
-  f Weight
-  -> f s
-  -> f Moment
-c172Moment wt b =
-  (\w -> Moment w . view armStatic) <$> wt <*> b
 
 
 ----
@@ -366,7 +364,7 @@ vhafrMoment ::
   C172Arms Weight
   -> C172AircraftArms Moment
 vhafrMoment wt =
-  c172Moment (vhafrWeight wt) vhafrArms
+  momentX (vhafrWeight wt) vhafrArms
 
 vhlseWeight ::
   C172Arms Weight
@@ -384,7 +382,7 @@ vhlseMoment ::
   C172Arms Weight
   -> C172AircraftArms Moment
 vhlseMoment wt =
-  c172Moment (vhlseWeight wt) vhlseArms
+  momentX (vhlseWeight wt) vhlseArms
 
 main ::
   IO ()

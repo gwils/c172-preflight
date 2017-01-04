@@ -9,8 +9,10 @@ module Data.Aviation.WB.Moment(
 , SetMoment(..)
 , HasMoment0(..)
 , totalMoment
+, momentX
 ) where
 
+import Control.Applicative(Applicative((<*>)))
 import Control.Category((.))
 import Control.Lens(Lens', Traversal', Setter', Iso', lens, makeClassy, review, view, to, re)
 import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
@@ -20,6 +22,7 @@ import Data.Aviation.WB.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArm
 import Data.Aviation.WB.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
 import Data.Eq(Eq)
 import Data.Foldable(Foldable, foldl)
+import Data.Functor((<$>))
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid)
 import Data.Ord(Ord)
@@ -116,4 +119,11 @@ totalMoment w a m =
                                             a'' = view (moment . armStatic . re a) n
                                         in  (w' + w'', a' + w'' * a'')) (0, 0) m
   in  Moment (view w mw) (view a ma)
-             
+
+momentX :: 
+  (HasWeight w, HasArmStatic s, Applicative f) =>
+  f w
+  -> f s
+  -> f Moment
+momentX wt b =
+  (\w -> Moment (view weight w) . view armStatic) <$> wt <*> b
