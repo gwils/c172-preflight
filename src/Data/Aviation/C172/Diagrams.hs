@@ -1,29 +1,31 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes #-}
 
 module Data.Aviation.C172.Diagrams(
   dejavuSansMono
 , polygonPoint
 , plotgrid
-, plotmomentpoint
+, plotlines
 , plotenvelope
+, plotmomentpoint
 , textreportDiagram
-, gridaxis
+, plotMomentDiagram
 , momentDiagram
+, momentDiagramFuelline
 , makepoly
 ) where
 
-import Prelude
+import Control.Applicative((<*>))
+import Control.Category((.))
 import Control.Lens(view, preview, over, both, _head, snoc, (&~), (.=), (*=), (%=), (.~), (&))
 import Control.Monad.State(State)
-import Data.Foldable(toList)
+import Data.Bool(Bool(True))
+import Data.Foldable(toList, mapM_)
+import Data.Function(($))
+import Data.Functor(fmap)
+import Data.Maybe(Maybe(Just), maybe)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
 import Diagrams.Prelude(V2, black, red, lightgrey, darkgrey, local, _fontSize, rotateBy, (#), fc)
@@ -42,12 +44,15 @@ import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
 import Data.Geometry.Point(Point, point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
+import Data.Semigroup((<>))
+import Data.Tuple(uncurry)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Plots.Axis.Render(renderAxis)
-import Text.Printf
+import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), (-), show, round)
+import Text.Printf(printf)
 
 ---- 
 ---- Moment Envelope
@@ -99,20 +104,16 @@ plotgrid =
       tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
       minorGridLines . visible .= True
 
-plotmomentpoint :: 
+plotlines :: 
   Renderable (Path V2 Double) b =>
-  Point 2 Rational
+  [(Point 2 Rational, Point 2 Rational)]
   -> State (Axis b V2 Double) ()
-plotmomentpoint pq =
-  let (p, q) =
-        _point2 pq
-      crosshair =
-        [[(p, q - 50), (p, q + 50)], [(p - 5, q), (p + 5, q)]]
-  in  mapM_ (\xx -> map (over both fromRational) xx `linePlot`
-                             do  plotColor .= red
-                                 lineStyle . _lw .= 1.5
-                           ) crosshair
-    
+plotlines =
+  mapM_ (\(a, b) ->
+    fmap (over both fromRational) [_point2 a, _point2 b] `linePlot`
+      do  plotColor .= red
+          lineStyle . _lw .= 1.5)
+         
 plotenvelope :: 
   (Renderable (Path V2 Double) b) =>
   [SimplePolygon () Rational]
@@ -124,6 +125,17 @@ plotenvelope =
         do  plotColor .= c
             lineStyle . _lw .= l
   in  mapM_ (\g -> linePlotPolygon g black 0.7)
+
+plotmomentpoint :: 
+  Point 2 Rational
+  -> [(Point 2 Rational, Point 2 Rational)]
+plotmomentpoint pq =
+  let (p, q) =
+        _point2 pq
+  in  [
+        (point2 p (q - 50), point2 p (q + 50))
+      , (point2 (p - 5) q, point2 (p + 5) q)
+      ]
 
 textreportDiagram :: 
   Renderable (Text Double) b =>
@@ -150,24 +162,25 @@ textreportDiagram u n pq =
         alignedText a b x # fontSizeL 6 # dejavuSansMono # fc red
   in  vcat' (with & sep .~ 15)
         [
-            reporttext (0.650) (-1.65) ("Moment              " ++ textRational (p * 1000) ++ " pound/inches")
-          , reporttext (0.805) (-2.20) ("All Up Weight       " ++ textRational q ++ " pounds")
-          , reporttext (1.245) (-2.20) ("Utility Category    " ++ textPointLocationResult utility)
-          , reporttext (1.190) (-2.80) ("Normal Category     " ++ textPointLocationResult normal)
+            reporttext (0.650) (-1.65) ("Moment              " <> textRational (p * 1000) <> " pound/inches")
+          , reporttext (0.805) (-2.20) ("All Up Weight       " <> textRational q <> " pounds")
+          , reporttext (1.245) (-2.20) ("Utility Category    " <> textPointLocationResult utility)
+          , reporttext (1.190) (-2.80) ("Normal Category     " <> textPointLocationResult normal)
         ]
-
-gridaxis :: 
+ 
+plotMomentDiagram :: 
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   SimplePolygon () Rational
   -> SimplePolygon () Rational
-  -> Point 2 Rational
-  -> Axis b V2 Double
-gridaxis u n pq =
-  r2Axis &~ 
-    do  plotgrid
-        plotenvelope [u, n]
-        plotmomentpoint pq
-      
+  -> [(Point 2 Rational, Point 2 Rational)]
+  -> QDiagram b V2 Double Any
+plotMomentDiagram u n x =
+  let r = r2Axis &~ 
+            do  plotgrid
+                plotenvelope [u, n]
+                plotlines x
+  in  renderAxis r # centerX # dejavuSansMono
+
 momentDiagram ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
   SimplePolygon () Rational
@@ -177,12 +190,22 @@ momentDiagram ::
 momentDiagram u n pq =
   vcat' (with & sep .~ 15)
     [
-      renderAxis (gridaxis u n pq) # centerX # dejavuSansMono
+      plotMomentDiagram u n (plotmomentpoint pq)
     , textreportDiagram u n pq
     ]
+
+momentDiagramFuelline :: 
+  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
+  SimplePolygon () Rational
+  -> SimplePolygon () Rational
+  -> Point 2 Rational
+  -> Point 2 Rational
+  -> QDiagram b V2 Double Any
+momentDiagramFuelline u n a b =
+  plotMomentDiagram u n [(a, b)]
 
 makepoly ::
   [(r, r)]
   -> SimplePolygon () r
 makepoly = 
-  fromPoints . map (ext . uncurry point2)
+  fromPoints . fmap (ext . uncurry point2)

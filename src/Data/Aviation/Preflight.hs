@@ -15,6 +15,7 @@ import Diagrams.Prelude(V2(V2), mkSizeSpec)
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
 import Diagrams.Core.Compile(renderDia)
+import Diagrams.TwoD.Combinators(vcat)
 import Data.Geometry.Point(Point, point2)
 import Data.Geometry.Polygon(SimplePolygon)
 import Data.Semigroup((<>))
@@ -23,31 +24,6 @@ import Data.Aviation.C172.C172MomentEnvelope
 import Data.Aviation.C172.Diagrams
 import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
 import Data.Aviation.WB(Arm, Moment(Moment), HasMoment, totalMoment, momentX, Weight)
-
-
-
-----
-
-----
-
--- baggage "A" maximum 120lb
--- baggage "B" maximum 50lb
--- maximum overall baggage 120lb
-{-
-
-limitsC172KnownArmType ::
-  Limits C172KnownArmType
-limitsC172KnownArmType =
-  Limits
-    [
-      Limit (Set.singleton BaggageA) (Capacity 120)
-    , Limit (Set.singleton BaggageB) (Capacity 50)
-    , Limit (Set.fromList [BaggageA, BaggageB]) (Capacity 120)
-    , Limit (Set.singleton Fuel) (Capacity 336)
-    ]
--}
-
-----
 
 totalMomentPoundInchesPoint ::
   (HasMoment moment, Foldable f) =>
@@ -150,5 +126,8 @@ main =
                   "dist/output.svg"
                   (mkSizeSpec (V2 Nothing Nothing))
                   SVG
-                  False                  
-  in  mapM_ (\o -> fst (renderDia Cairo o (momentDiagram c172sUtilityCategoryPoly c172sNormalCategoryPoly example))) [pngoptions, psoptions, pdfoptions, svgoptions]
+                  False
+      momd = momentDiagram c172sUtilityCategoryPoly c172sNormalCategoryPoly example
+      mome = momentDiagramFuelline c172sUtilityCategoryPoly c172sNormalCategoryPoly (point2 90 1900) (point2 105 2100)
+
+  in  mapM_ (\o -> fst (renderDia Cairo o (vcat [momd, mome]))) [pngoptions, psoptions, pdfoptions, svgoptions]
