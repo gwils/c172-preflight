@@ -153,7 +153,7 @@ totalMomentPoundInchesPoint ::
   -> Point 2 Rational
 totalMomentPoundInchesPoint x =
   let Moment w a = totalMoment pounds inches x
-  in  point2 (review thouinches a) (review pounds w) -- TODO thouinches
+  in  point2 (review thouinches a) (review pounds w) 
 
 ----
 
