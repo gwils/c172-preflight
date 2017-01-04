@@ -18,7 +18,7 @@ import Diagrams.Core.Compile(renderDia)
 import Data.Geometry.Point(Point, point2)
 import Data.Geometry.Polygon(SimplePolygon)
 import Data.Semigroup((<>))
-import Data.Aviation.C172(C172Arms(C172Arms), C172AircraftArms(C172AircraftArms), c172ArmsAircraft)
+import Data.Aviation.C172(C172Arms(C172Arms), C172AircraftArms(C172AircraftArms), bewC172AircraftArms)
 import Data.Aviation.C172.C172MomentEnvelope
 import Data.Aviation.C172.Diagrams
 import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
@@ -64,7 +64,7 @@ vhafrWeight =
 vhafrArms ::
   C172AircraftArms Arm
 vhafrArms =
-  c172ArmsAircraft (39.37 ^. inches)
+  bewC172AircraftArms (39.37 ^. inches)
 
 vhafrMoment ::
   C172Arms Weight
@@ -88,7 +88,7 @@ vhlseWeight =
 vhlseArms ::
   C172AircraftArms Arm
 vhlseArms =
-  c172ArmsAircraft (40.6 ^. inches)
+  bewC172AircraftArms (40.6 ^. inches)
 
 vhlseMoment ::
   C172Arms Weight

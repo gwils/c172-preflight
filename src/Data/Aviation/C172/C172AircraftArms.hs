@@ -7,7 +7,7 @@
 module Data.Aviation.C172.C172AircraftArms(
   C172AircraftArms(..)
 , HasC172AircraftArms(..)
-, c172ArmsAircraft
+, bewC172AircraftArms
 ) where
 
 import Control.Applicative(Applicative((<*>), pure))
@@ -28,7 +28,7 @@ import Prelude(Show)
 
 data C172AircraftArms a =
   C172AircraftArms {
-    _aircraftArm ::
+    _basicEmptyWeight ::
       a
   , c172Arms_ ::
       C172Arms a
@@ -69,10 +69,10 @@ instance Traversable C172AircraftArms where
   traverse k (C172AircraftArms c x) =
     C172AircraftArms <$> k c <*> traverse k x
 
-c172ArmsAircraft ::
+bewC172AircraftArms ::
   ArmStatic
   -> C172AircraftArms Arm
-c172ArmsAircraft a =
+bewC172AircraftArms a =
   C172AircraftArms
     (staticArm a)
     c172ArmsPOH
