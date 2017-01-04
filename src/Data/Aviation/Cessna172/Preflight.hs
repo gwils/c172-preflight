@@ -15,7 +15,7 @@ import Control.Monad.State(State)
 import Data.Foldable(toList)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2(V2), black, red, local, _fontSize, rotateBy, mkSizeSpec, (#), fc)
+import Diagrams.Prelude(V2(V2), black, red, lightgrey, darkgrey, local, _fontSize, rotateBy, mkSizeSpec, (#), fc)
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions)) -- (CairoOptions(..))
 import Diagrams.Combinators(sep)
@@ -24,6 +24,7 @@ import Diagrams.Core.Style(HasStyle)
 import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
 import Diagrams.TwoD.Align(centerX)
+import Diagrams.TwoD.Attributes(lc)
 import Diagrams.TwoD.Combinators(vcat')
 import Diagrams.TwoD.Text(Text, alignedText, fontSizeL, font)
 import Diagrams.Util(with)
@@ -153,7 +154,7 @@ totalMomentPoundInchesPoint ::
   -> Point 2 Rational
 totalMomentPoundInchesPoint x =
   let Moment w a = totalMoment pounds inches x
-  in  point2 (review thouinches a) (review pounds w) 
+  in  point2 (review thouinches a) (review pounds w)
 
 ----
 
@@ -257,7 +258,7 @@ plot z =
         yLabel .= "Loaded Airplane Weight (Pounds)"
 
         xMin .= Just 50
-        yMin .= Just 1480
+        yMin .= Just 1460
 
         xMax .= Just 130
         yMax .= Just 2600
@@ -277,7 +278,9 @@ plot z =
         minorTicksFunction .= minorTicksHelper 10
         majorTicksStyle %= lwO 1.6
         minorGridLinesStyle %= lwO 0.3
-        majorGridLinesStyle %= lwO 0.6
+        minorGridLinesStyle %= lc lightgrey
+        majorGridLinesStyle %= lwO 0.8
+        majorGridLinesStyle %= lc darkgrey
         tickLabelFunction .= atMajorTicks (show . (round :: Double -> Int))
         minorGridLines . visible .= True
 

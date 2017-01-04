@@ -39,6 +39,7 @@ library
                     , hgeometry
                     , containers
                     , fixed-vector
+                    , colour
                     
   ghc-options:
                     -Wall
