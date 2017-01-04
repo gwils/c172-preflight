@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(
+module Data.Aviation.WB.Arm.ArmStatic(
   ArmStatic
 , HasArmStatic(..)
 , HasArmStatics(..)

@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.Arm.ArmRangeLower(
+module Data.Aviation.WB.Arm.ArmRangeLower(
   ArmRangeLower
 , HasArmRangeLower(..)
 , HasArmRangeLowers(..)

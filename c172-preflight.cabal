@@ -53,23 +53,24 @@ library
 
   exposed-modules:
                     Data.Aviation.Units
-                    Data.Aviation.Cessna172.Preflight.Arm
-                    Data.Aviation.Cessna172.Preflight.Arm.Arm
-                    Data.Aviation.Cessna172.Preflight.Arm.ArmRange
-                    Data.Aviation.Cessna172.Preflight.Arm.ArmRangeLower
-                    Data.Aviation.Cessna172.Preflight.Arm.ArmStatic
-                    Data.Aviation.Cessna172.Preflight.Arm.ArmRangeUpper
+                    Data.Aviation.WB.Arm
+                    Data.Aviation.WB.Arm.Arm
+                    Data.Aviation.WB.Arm.ArmRange
+                    Data.Aviation.WB.Arm.ArmRangeLower
+                    Data.Aviation.WB.Arm.ArmStatic
+                    Data.Aviation.WB.Arm.ArmRangeUpper
+                    Data.Aviation.WB.Moment
+                    Data.Aviation.WB.Weight
+                    Data.Aviation.WB.TakeoffLanding
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
                     Data.Aviation.Units.Kilograms
                     Data.Aviation.Units.Pounds
                     Data.Aviation.Units.Poundinches
                     Data.Aviation.Units.Thouinches
+                    
                     Data.Aviation.Cessna172.Preflight
-                    Data.Aviation.Cessna172.Preflight.Moment
-                    Data.Aviation.Cessna172.Preflight.Weight
-                    Data.Aviation.Cessna172.Preflight.TakeoffLanding
-
+                    
 test-suite doctests
   type:
                     exitcode-stdio-1.0

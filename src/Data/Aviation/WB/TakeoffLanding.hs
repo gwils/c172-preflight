@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.TakeoffLanding where
+module Data.Aviation.WB.TakeoffLanding where
 
 import Prelude
 import Control.Lens

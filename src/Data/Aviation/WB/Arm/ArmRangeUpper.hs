@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.Arm.ArmRangeUpper(
+module Data.Aviation.WB.Arm.ArmRangeUpper(
   ArmRangeUpper
 , HasArmRangeUpper(..)
 , HasArmRangeUppers(..)

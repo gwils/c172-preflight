@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.Arm.Arm(
+module Data.Aviation.WB.Arm.Arm(
   Arm(..)
 , staticArm
 , rangeArm
@@ -13,10 +13,10 @@ module Data.Aviation.Cessna172.Preflight.Arm.Arm(
 
 import Control.Category((.))
 import Control.Lens(Lens', Traversal', Setter', lens, makeClassy)
-import Data.Aviation.Cessna172.Preflight.Arm.ArmRangeLower(HasArmRangeLowers(armRangeLowers), SetArmRangeLower(setArmRangeLower))
-import Data.Aviation.Cessna172.Preflight.Arm.ArmRange(ArmRange, HasArmRanges(armRanges), SetArmRange(setArmRange), HasArmRange0(armRange0))
-import Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
-import Data.Aviation.Cessna172.Preflight.Arm.ArmRangeUpper(HasArmRangeUppers(armRangeUppers), SetArmRangeUpper(setArmRangeUpper))
+import Data.Aviation.WB.Arm.ArmRangeLower(HasArmRangeLowers(armRangeLowers), SetArmRangeLower(setArmRangeLower))
+import Data.Aviation.WB.Arm.ArmRange(ArmRange, HasArmRanges(armRanges), SetArmRange(setArmRange), HasArmRange0(armRange0))
+import Data.Aviation.WB.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
+import Data.Aviation.WB.Arm.ArmRangeUpper(HasArmRangeUppers(armRangeUppers), SetArmRangeUpper(setArmRangeUpper))
 import Data.Functor((<$>))
 import Data.Traversable(traverse)
 import Data.Eq(Eq)

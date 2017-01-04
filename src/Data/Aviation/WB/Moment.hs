@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Data.Aviation.Cessna172.Preflight.Moment(
+module Data.Aviation.WB.Moment(
   Moment(..)
 , HasMoment(..)
 , HasMoments(..)
@@ -16,8 +16,8 @@ import Control.Lens(Lens', Traversal', Setter', Iso', lens, makeClassy, review, 
 import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
 import Data.Aviation.Units.Pounds(pounds)
 import Data.Aviation.Units.Inches(inches)
-import Data.Aviation.Cessna172.Preflight.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
-import Data.Aviation.Cessna172.Preflight.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
+import Data.Aviation.WB.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
+import Data.Aviation.WB.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
 import Data.Eq(Eq)
 import Data.Foldable(Foldable, foldl)
 import Data.Maybe(Maybe)

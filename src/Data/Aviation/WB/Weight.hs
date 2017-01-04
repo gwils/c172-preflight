@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.Weight(
+module Data.Aviation.WB.Weight(
   Weight
 , HasWeight(..)
 , HasWeights(..)

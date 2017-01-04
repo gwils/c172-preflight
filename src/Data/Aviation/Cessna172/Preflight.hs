@@ -35,9 +35,9 @@ import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
 import Data.Geometry.Point(Point, point2, _point2)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Semigroup((<>))
-import Data.Aviation.Cessna172.Preflight.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
-import Data.Aviation.Cessna172.Preflight.Moment
-import Data.Aviation.Cessna172.Preflight.Weight(Weight)
+import Data.Aviation.WB.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
+import Data.Aviation.WB.Moment
+import Data.Aviation.WB.Weight(Weight)
 import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 

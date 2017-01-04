@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Data.Aviation.Cessna172.Preflight.Arm.ArmRange(
+module Data.Aviation.WB.Arm.ArmRange(
   ArmRange(..)
 , HasArmRange(..)
 , HasArmRanges(..)
@@ -11,8 +11,8 @@ module Data.Aviation.Cessna172.Preflight.Arm.ArmRange(
 ) where
 
 import Control.Lens(Lens', Traversal', Setter', lens, makeClassy)
-import Data.Aviation.Cessna172.Preflight.Arm.ArmRangeLower(ArmRangeLower, HasArmRangeLower(armRangeLower), HasArmRangeLowers(armRangeLowers), SetArmRangeLower(setArmRangeLower))
-import Data.Aviation.Cessna172.Preflight.Arm.ArmRangeUpper(ArmRangeUpper, HasArmRangeUpper(armRangeUpper), HasArmRangeUppers(armRangeUppers), SetArmRangeUpper(setArmRangeUpper))
+import Data.Aviation.WB.Arm.ArmRangeLower(ArmRangeLower, HasArmRangeLower(armRangeLower), HasArmRangeLowers(armRangeLowers), SetArmRangeLower(setArmRangeLower))
+import Data.Aviation.WB.Arm.ArmRangeUpper(ArmRangeUpper, HasArmRangeUpper(armRangeUpper), HasArmRangeUppers(armRangeUppers), SetArmRangeUpper(setArmRangeUpper))
 import Data.Eq(Eq)
 import Data.Maybe(Maybe)
 import Data.Ord(Ord)
