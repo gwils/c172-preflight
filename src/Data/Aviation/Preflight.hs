@@ -7,7 +7,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Data.Aviation.Cessna172.Preflight where
+module Data.Aviation.Preflight where
 
 import Prelude
 import Control.Lens(makeClassy, lens, view, review, over, both, _head, Cons, Snoc, snoc, (^?), (&~), (.=), (*=), (%=), (.~), (^.), (&))

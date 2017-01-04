@@ -61,7 +61,6 @@ library
                     Data.Aviation.WB.Arm.ArmRangeUpper
                     Data.Aviation.WB.Moment
                     Data.Aviation.WB.Weight
-                    Data.Aviation.WB.TakeoffLanding
                     Data.Aviation.Units.Centimetres
                     Data.Aviation.Units.Inches
                     Data.Aviation.Units.Kilograms
@@ -69,7 +68,8 @@ library
                     Data.Aviation.Units.Poundinches
                     Data.Aviation.Units.Thouinches
                     
-                    Data.Aviation.Cessna172.Preflight
+                    Data.Aviation.Preflight
+                    Data.Aviation.TakeoffLanding
                     
 test-suite doctests
   type:
