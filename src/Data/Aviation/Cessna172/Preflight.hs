@@ -32,9 +32,8 @@ import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
 import Data.CircularSeq(CSeq)
 import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
-import Data.Geometry.Line.Internal(sqDistanceToArg, supportingLine)
 import Data.Geometry.Point(Point, point2, _point2)
-import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundaryEdges, outerBoundary)
+import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Semigroup((<>))
 import Data.Aviation.Cessna172.Preflight.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
 import Data.Aviation.Cessna172.Preflight.Moment
@@ -177,9 +176,9 @@ limitsC172KnownArmType =
 
 ----
 
-c172NormalCategory :: 
+c172sNormalCategory :: 
   SimplePolygon () Rational
-c172NormalCategory =
+c172sNormalCategory =
   fromPoints . map ext $
     [
       point2 120.5 2550
@@ -190,9 +189,9 @@ c172NormalCategory =
     , point2 104.5 2550
     ]
 
-c172UtilityCategory :: 
+c172sUtilityCategory :: 
   SimplePolygon () Rational
-c172UtilityCategory =
+c172sUtilityCategory =
   fromPoints . map ext $
     [
       point2 61 1500    
@@ -201,13 +200,6 @@ c172UtilityCategory =
     , point2 68 1950
     , point2 52.5 1500
     ]
-
-nearestPoints ::
-  SimplePolygon () Rational
-  -> Point 2 Rational
-  -> CSeq (Rational, Point 2 Rational)
-nearestPoints y p =
-  sqDistanceToArg p . supportingLine <$> outerBoundaryEdges y
 
 ---- 
 ---- Moment Envelope
@@ -251,8 +243,8 @@ plot z =
   in  r2Axis &~ do
         _ <- z
 
-        linePlotPolygon c172UtilityCategory black 0.7
-        linePlotPolygon c172NormalCategory black 0.7
+        linePlotPolygon c172sUtilityCategory black 0.7
+        linePlotPolygon c172sNormalCategory black 0.7
         
         xLabel .= "Loaded Airplane Moment/1000 (Pounds - Inches)"
         yLabel .= "Loaded Airplane Weight (Pounds)"
@@ -314,9 +306,9 @@ renderTextResult pq =
       textRational r =
         printf "%.2f" (fromRational r :: Double)
       utility =
-        pq `inPolygon` c172UtilityCategory
+        pq `inPolygon` c172sUtilityCategory
       normal =
-        pq `inPolygon` c172NormalCategory
+        pq `inPolygon` c172sNormalCategory
       textPointLocationResult Inside =
         "YES"
       textPointLocationResult Outside = 
