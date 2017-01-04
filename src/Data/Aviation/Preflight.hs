@@ -23,7 +23,7 @@ import Data.Aviation.C172(C172Arms(C172Arms), C172AircraftArms(C172AircraftArms)
 import Data.Aviation.C172.C172MomentEnvelope
 import Data.Aviation.C172.Diagrams
 import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
-import Data.Aviation.WB(Arm, Moment(Moment), HasMoment, totalMoment, momentX, Weight)
+import Data.Aviation.WB(Arm, Moment(Moment), HasMoment, totalMoment, momentX, Weight, Zerofuel(zerofuel), Maximumfuel(maximumfuel))
 
 totalMomentPoundInchesPoint ::
   (HasMoment moment, Foldable f) =>
@@ -55,18 +55,6 @@ sampleC172ArmWeights =
     (10 ^. kilograms)
     mempty
 
-vhafrMomentPoint ::
-  C172Arms Weight
-  -> Point 2 Rational
-vhafrMomentPoint =
-  totalMomentPoundInchesPoint . vhafrMoment
-
-vhlseMomentPoint ::
-  C172Arms Weight
-  -> Point 2 Rational
-vhlseMomentPoint =
-  totalMomentPoundInchesPoint . vhlseMoment
-
 vhafrWeight ::
   C172Arms Weight
   -> C172AircraftArms Weight
@@ -84,6 +72,12 @@ vhafrMoment ::
   -> C172AircraftArms Moment
 vhafrMoment wt =
   momentX (vhafrWeight wt) vhafrArms
+
+vhafrMomentPoint ::
+  C172Arms Weight
+  -> Point 2 Rational
+vhafrMomentPoint =
+  totalMomentPoundInchesPoint . vhafrMoment
 
 vhlseWeight ::
   C172Arms Weight
@@ -103,10 +97,23 @@ vhlseMoment ::
 vhlseMoment wt =
   momentX (vhlseWeight wt) vhlseArms
 
+vhlseMomentPoint ::
+  C172Arms Weight
+  -> Point 2 Rational
+vhlseMomentPoint =
+  totalMomentPoundInchesPoint . vhlseMoment
+
 main ::
   IO ()
 main =
-  let example = vhlseMomentPoint sampleC172ArmWeights
+  let aircraft = vhlseWeight sampleC172ArmWeights
+      zfw :: C172AircraftArms Weight; zfw = zerofuel aircraft
+      zfwMoment :: C172AircraftArms Moment; zfwMoment = momentX zfw vhlseArms
+      zfwMomentPoint :: Point 2 Rational; zfwMomentPoint = totalMomentPoundInchesPoint zfwMoment
+      ffw :: C172AircraftArms Weight; ffw = maximumfuel aircraft
+      ffwMoment :: C172AircraftArms Moment; ffwMoment = momentX ffw vhlseArms
+      ffwMomentPoint :: Point 2 Rational; ffwMomentPoint = totalMomentPoundInchesPoint ffwMoment
+      totalAircraftMoment = vhlseMomentPoint sampleC172ArmWeights
       pngoptions = CairoOptions
                   "dist/output.png"
                   (mkSizeSpec (V2 (Just 800) (Just 1131.2)))
@@ -127,7 +134,6 @@ main =
                   (mkSizeSpec (V2 Nothing Nothing))
                   SVG
                   False
-      momd = momentDiagram c172sUtilityCategoryPoly c172sNormalCategoryPoly example
-      mome = momentDiagramFuelline c172sUtilityCategoryPoly c172sNormalCategoryPoly (point2 90 1900) (point2 105 2100)
-
-  in  mapM_ (\o -> fst (renderDia Cairo o (vcat [momd, mome]))) [pngoptions, psoptions, pdfoptions, svgoptions]
+      momd = momentDiagram c172sUtilityCategoryPoly c172sNormalCategoryPoly totalAircraftMoment (zfwMomentPoint, ffwMomentPoint)
+      
+  in  mapM_ (\o -> fst (renderDia Cairo o momd)) [pngoptions, psoptions, pdfoptions, svgoptions]

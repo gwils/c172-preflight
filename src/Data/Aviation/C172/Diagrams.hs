@@ -13,7 +13,6 @@ module Data.Aviation.C172.Diagrams(
 , textreportDiagram
 , plotMomentDiagram
 , momentDiagram
-, momentDiagramFuelline
 , makepoly
 ) where
 
@@ -22,14 +21,16 @@ import Control.Category((.))
 import Control.Lens(view, preview, over, both, _head, snoc, (&~), (.=), (*=), (%=), (.~), (&))
 import Control.Monad.State(State)
 import Data.Bool(Bool(True))
+import Data.Colour(Colour)
 import Data.Foldable(toList, mapM_)
 import Data.Function(($))
 import Data.Functor(fmap)
 import Data.Maybe(Maybe(Just), maybe)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2, black, red, lightgrey, darkgrey, local, _fontSize, rotateBy, (#), fc)
+import Diagrams.Prelude(V2, black, red, green, lightgrey, darkgrey, local, _fontSize, rotateBy, (#), fc)
 import Diagrams.Combinators(sep)
+import Diagrams.Core.Measure(Measure)
 import Diagrams.Core.Style(HasStyle)
 import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
@@ -103,13 +104,15 @@ plotgrid =
 
 plotlines :: 
   Renderable (Path V2 Double) b =>
-  [(Point 2 Rational, Point 2 Rational)]
+  Colour Double
+  -> Measure Double
+  -> [(Point 2 Rational, Point 2 Rational)]
   -> State (Axis b V2 Double) ()
-plotlines =
+plotlines c w =
   mapM_ (\(a, b) ->
     fmap (over both fromRational) [_point2 a, _point2 b] `linePlot`
-      do  plotColor .= red
-          lineStyle . _lw .= 1.5)
+      do  plotColor .= c
+          lineStyle . _lw .= w)
          
 plotenvelope :: 
   (Renderable (Path V2 Double) b) =>
@@ -139,10 +142,15 @@ textreportDiagram ::
   SimplePolygon () Rational
   -> SimplePolygon () Rational
   -> Point 2 Rational
+  -> (Point 2 Rational, Point 2 Rational)
   -> QDiagram b V2 Double Any
-textreportDiagram u n pq =
+textreportDiagram u n pq (zfw, ffw) =
   let (p, q) =
         _point2 pq
+      (zfwp, zfwq) =
+        _point2 zfw
+      (ffwp, ffwq) =
+        _point2 ffw
       textRational r =
         printf "%.2f" (fromRational r :: Double)
       utility =
@@ -155,14 +163,18 @@ textreportDiagram u n pq =
         "NO"
       textPointLocationResult OnBoundary = 
         "NO"
-      reporttext a b x =
-        alignedText a b x # fontSizeL 6 # dejavuSansMono # fc red
+      reporttext a b x c =
+        alignedText a b x # fontSizeL 3 # dejavuSansMono # fc c
   in  vcat' (with & sep .~ 15)
         [
-            reporttext (0.650) (-1.65) ("Moment              " <> textRational (p * 1000) <> " pound/inches")
-          , reporttext (0.805) (-2.20) ("All Up Weight       " <> textRational q <> " pounds")
-          , reporttext (1.245) (-2.20) ("Utility Category    " <> textPointLocationResult utility)
-          , reporttext (1.190) (-2.80) ("Normal Category     " <> textPointLocationResult normal)
+            reporttext (0.970) (-04.80) ("Moment                           " <> textRational (p * 1000) <> " pound/inches") red
+          , reporttext (1.136) (-06.80) ("All Up Weight                    " <> textRational q <> " pounds") red
+          , reporttext (1.525) (-08.80) ("Utility Category                 " <> textPointLocationResult utility) red
+          , reporttext (1.483) (-10.80) ("Normal Category                  " <> textPointLocationResult normal) red
+          , reporttext (0.990) (-12.80) ("Zero Fuel Moment                 " <> textRational (zfwp * 1000) <> " pound/inches") green
+          , reporttext (1.137) (-14.80) ("Zero Fuel Weight                 " <> textRational zfwq <> " pounds") green
+          , reporttext (0.972) (-16.80) ("Fuel at Capacity Moment          " <> textRational (ffwp * 1000) <> " pound/inches") green
+          , reporttext (1.138) (-18.80) ("Fuel at Capacity Weight          " <> textRational ffwq <> " pounds") green
         ]
  
 plotMomentDiagram :: 
@@ -170,12 +182,14 @@ plotMomentDiagram ::
   SimplePolygon () Rational
   -> SimplePolygon () Rational
   -> [(Point 2 Rational, Point 2 Rational)]
+  -> (Point 2 Rational, Point 2 Rational)
   -> QDiagram b V2 Double Any
-plotMomentDiagram u n x =
+plotMomentDiagram u n x fl =
   let r = r2Axis &~ 
             do  plotgrid
                 plotenvelope [u, n]
-                plotlines x
+                plotlines red 1.5 x
+                plotlines green 1.5 [fl]
   in  renderAxis r # centerX # dejavuSansMono
 
 momentDiagram ::
@@ -183,23 +197,14 @@ momentDiagram ::
   SimplePolygon () Rational
   -> SimplePolygon () Rational
   -> Point 2 Rational
+  -> (Point 2 Rational, Point 2 Rational)
   -> QDiagram b V2 Double Any
-momentDiagram u n pq =
+momentDiagram u n pq fl =
   vcat' (with & sep .~ 15)
     [
-      plotMomentDiagram u n (plotmomentpoint pq)
-    , textreportDiagram u n pq
+      plotMomentDiagram u n (plotmomentpoint pq) fl
+    , textreportDiagram u n pq fl
     ]
-
-momentDiagramFuelline :: 
-  (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
-  SimplePolygon () Rational
-  -> SimplePolygon () Rational
-  -> Point 2 Rational
-  -> Point 2 Rational
-  -> QDiagram b V2 Double Any
-momentDiagramFuelline u n a b =
-  plotMomentDiagram u n [(a, b)]
 
 makepoly ::
   [(r, r)]
