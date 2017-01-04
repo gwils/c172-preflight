@@ -18,7 +18,7 @@ import Data.Monoid(Monoid(mempty, mappend))
 import Data.Ord(Ord)
 import Data.Ratio((%))
 import Data.Semigroup(Semigroup((<>)))
-import Numeric.Lens(dividing)
+import Numeric.Lens(dividing, multiplying)
 import Prelude(Show, Rational, (+))
 
 newtype ArmRangeUpper =
@@ -62,7 +62,7 @@ instance Inches ArmRangeUpper where
 
 instance Thouinches ArmRangeUpper where
   thouinches =
-    dividing 1000 . inches
+    multiplying 1000 . inches
 
 instance Centimetres ArmRangeUpper where
   centimetres =

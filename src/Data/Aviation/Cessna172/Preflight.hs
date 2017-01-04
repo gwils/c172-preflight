@@ -38,7 +38,7 @@ import Data.Semigroup((<>))
 import Data.Aviation.Cessna172.Preflight.Arm(Arm, ArmStatic, HasArmStatic(armStatic), rangeArm, staticArm, (.->.))
 import Data.Aviation.Cessna172.Preflight.Moment
 import Data.Aviation.Cessna172.Preflight.Weight(Weight)
-import Data.Aviation.Units(inches, pounds, kilograms)
+import Data.Aviation.Units(inches, pounds, kilograms, thouinches)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
@@ -153,7 +153,7 @@ totalMomentPoundInchesPoint ::
   -> Point 2 Rational
 totalMomentPoundInchesPoint x =
   let Moment w a = totalMoment pounds inches x
-  in  point2 (review inches a / 1000) (review pounds w) -- TODO thouinches
+  in  point2 (review thouinches a) (review pounds w) -- TODO thouinches
 
 ----
 
