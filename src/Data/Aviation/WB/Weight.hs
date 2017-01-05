@@ -7,10 +7,12 @@ module Data.Aviation.WB.Weight(
 , HasWeights(..)
 , SetWeight(..)
 , HasWeight0(..)
+, kilogramsW
+, poundsW
 ) where
 
 import Control.Category((.))
-import Control.Lens(Lens', Traversal', Setter', makeClassy, iso)
+import Control.Lens(Iso', iso, Lens', Traversal', Setter', makeClassy, iso)
 import Data.Aviation.Units(Kilograms(kilograms), Pounds(pounds))
 import Data.Eq(Eq)
 import Data.Maybe(Maybe)
@@ -54,6 +56,16 @@ class HasWeight0 a where
       a
       (Maybe Weight)
 
+instance Semigroup Weight where
+  (<>) =
+    mappend
+
+instance Monoid Weight where
+  mempty =
+    Weight 0
+  Weight w1 `mappend` Weight w2 =
+    Weight (w1 + w2)
+
 instance Kilograms Weight where
   kilograms =
     multiplying (22046226218 % 10000000000) . pounds
@@ -64,13 +76,16 @@ instance Pounds Weight where
       Weight
       (\(Weight x) -> x)
 
-instance Semigroup Weight where
-  (<>) =
-    mappend
-
-instance Monoid Weight where
-  mempty =
-    Weight 0
-  Weight w1 `mappend` Weight w2 =
-    Weight (w1 + w2)
-    
+kilogramsW ::
+  Iso'
+    Rational
+    Weight
+kilogramsW =
+  kilograms
+  
+poundsW ::
+  Iso'
+    Rational
+    Weight
+poundsW =
+  pounds

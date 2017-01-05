@@ -59,10 +59,13 @@ library
                     Data.Aviation.C172.Diagrams
                     Data.Aviation.Units
                     Data.Aviation.Units.Centimetres
+                    Data.Aviation.Units.ImperialGallons
                     Data.Aviation.Units.Inches
                     Data.Aviation.Units.Kilograms
+                    Data.Aviation.Units.Litres
                     Data.Aviation.Units.Pounds
                     Data.Aviation.Units.Thouinches
+                    Data.Aviation.Units.USGallons
                     Data.Aviation.WB
                     Data.Aviation.WB.Arm
                     Data.Aviation.WB.Arm.Arm
@@ -70,7 +73,9 @@ library
                     Data.Aviation.WB.Arm.ArmRangeLower
                     Data.Aviation.WB.Arm.ArmStatic
                     Data.Aviation.WB.Arm.ArmRangeUpper
+                    Data.Aviation.WB.Avgas100LL
                     Data.Aviation.WB.Moment
+                    Data.Aviation.WB.Volume
                     Data.Aviation.WB.Weight
                     
                     Data.Aviation.Preflight

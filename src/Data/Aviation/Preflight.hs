@@ -8,6 +8,7 @@ import Diagrams.Prelude(V2(V2), mkSizeSpec)
 import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
 import Diagrams.Backend.Cairo.Internal(Options(CairoOptions))
 import Diagrams.Core.Compile(renderDia)
+import Data.Foldable(fold)
 import Data.Semigroup((<>))
 import Data.Aviation.C172
 import Data.Aviation.Units
@@ -23,7 +24,7 @@ dynamicWeights =
   C172Arms
     (tony <> george)
     jess
-    (306 ^. pounds)
+    (fold [10 ^. usgallonsV . avgas100LL, 15 ^. litresV . avgas100LL, 2 ^. imperialgallonsV . avgas100LL, 12 ^. pounds])
     (10 ^. kilograms)
     mempty
 
