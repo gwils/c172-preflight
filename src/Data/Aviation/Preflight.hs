@@ -40,3 +40,6 @@ main =
       momd = momentDiagram "20170102 Test Flight VH-LSE PAX: George, Jess" testFlightMoment
       render (e, s, t) = fst (renderDia Cairo (CairoOptions ("dist/output." ++ e) s t False) momd)
   in  mapM_ render outputs
+
+-- vhafrBEW = 1684.3 ^. pounds
+-- vhafrArms = 39.37 ^. inches
