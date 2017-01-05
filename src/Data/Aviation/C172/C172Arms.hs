@@ -11,13 +11,12 @@ module Data.Aviation.C172.C172Arms(
 ) where
 
 import Control.Applicative(Applicative((<*>), pure))
-import Control.Lens(makeClassy, (^.), set)
-import Data.Aviation.Units(inches, Pounds(pounds))
+import Control.Lens(makeClassy, (^.))
+import Data.Aviation.Units(inches)
 import Data.Aviation.WB.Arm(Arm, (.->.), rangeArm, staticArm)
 import Data.Eq(Eq)
 import Data.Foldable(Foldable(foldr))
 import Data.Functor(Functor(fmap), (<$>))
-import Data.Monoid
 import Data.Ord(Ord)
 import Data.Traversable(Traversable(traverse))
 import Prelude(Show)

@@ -17,19 +17,14 @@ module Data.Aviation.WB.Moment(
 
 import Control.Applicative(Applicative((<*>)))
 import Control.Category((.))
-import Control.Lens(Lens', Traversal', Setter', Iso', lens, makeClassy, review, view, to, re)
-import Data.Aviation.Units.Poundinches(ToPoundinches(poundinches))
-import Data.Aviation.Units.Pounds(pounds)
-import Data.Aviation.Units.Inches(inches)
+import Control.Lens(Lens', Traversal', Setter', Iso', lens, makeClassy, view, re)
 import Data.Aviation.WB.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
 import Data.Aviation.WB.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
 import Data.Eq(Eq)
 import Data.Foldable(Foldable, foldl, foldMap)
 import Data.Functor((<$>))
 import Data.Maybe(Maybe)
-import Data.Monoid(Monoid)
 import Data.Ord(Ord)
-import Data.Semigroup
 import Prelude(Show, (*), (+), Rational)
 
 data Moment =
@@ -65,13 +60,6 @@ class HasMoment0 a where
     Lens'
       a
       (Maybe Moment)
-
-instance ToPoundinches Moment where
-  poundinches =
-    to (\(Moment w a) -> 
-      let w' = review pounds w
-          a' = review inches a
-      in  w' * a')
 
 instance HasWeight Moment where
   weight =
