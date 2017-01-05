@@ -9,6 +9,9 @@ module Data.Aviation.WB.Moment(
 , SetMoment(..)
 , HasMoment0(..)
 , totalMoment
+, totalMoments
+, totalMoment''
+, totalWeights
 , momentX
 ) where
 
@@ -21,7 +24,7 @@ import Data.Aviation.Units.Inches(inches)
 import Data.Aviation.WB.Arm.ArmStatic(ArmStatic, HasArmStatic(armStatic), HasArmStatics(armStatics), SetArmStatic(setArmStatic))
 import Data.Aviation.WB.Weight(Weight, HasWeight(weight), HasWeights(weights), SetWeight(setWeight))
 import Data.Eq(Eq)
-import Data.Foldable(Foldable, foldl)
+import Data.Foldable(Foldable, foldl, foldMap)
 import Data.Functor((<$>))
 import Data.Maybe(Maybe)
 import Data.Monoid(Monoid)
@@ -63,16 +66,6 @@ class HasMoment0 a where
       a
       (Maybe Moment)
 
-instance Semigroup Moment where
-  (<>) =
-    mappend
-
-instance Monoid Moment where
-  mempty =
-    Moment mempty mempty
-  Moment w1 a1 `mappend` Moment w2 a2 =
-    Moment (w1 `mappend` w2) (a1 `mappend` a2)
-
 instance ToPoundinches Moment where
   poundinches =
     to (\(Moment w a) -> 
@@ -109,17 +102,45 @@ instance SetArmStatic Moment where
     armStatic
 
 totalMoment ::
+  HasMoment moment =>
+  Iso' Rational Weight
+  -> Iso' Rational ArmStatic
+  -> moment
+  -> Rational
+totalMoment w a m =
+  let r = view (moment . weight . re w) m
+      s = view (moment . armStatic . re a) m
+  in  r * s
+  
+totalMoments ::
+  (HasMoment moment, Foldable f) =>
+  Iso' Rational Weight
+  -> Iso' Rational ArmStatic
+  -> f moment
+  -> Rational
+totalMoments w a =
+  foldl (\x y -> x + totalMoment w a y) 0
+
+
+totalMoment'' ::
   (HasMoment moment, Foldable f) =>
   Iso' Rational Weight
   -> Iso' Rational ArmStatic
   -> f moment
   -> Moment
-totalMoment w a m =
+totalMoment'' w a m =
   let (mw, ma) = foldl (\(w', a') n ->  let w'' = view (moment . weight . re w) n
                                             a'' = view (moment . armStatic . re a) n
                                         in  (w' + w'', a' + w'' * a'')) (0, 0) m
   in  Moment (view w mw) (view a ma)
 
+totalWeights ::
+  (HasMoment moment, Foldable f) =>
+  f moment
+  -> Weight
+totalWeights =
+  foldMap (view (moment . weight))
+    
 momentX :: 
   (HasWeight w, HasArmStatic s, Applicative f) =>
   f w

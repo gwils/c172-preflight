@@ -9,26 +9,42 @@ module Data.Aviation.C172.Diagrams(
 , plotgrid
 , plotlines
 , plotenvelope
-, plotmomentpoint
+, crosshair
 , textreportDiagram
 , plotMomentDiagram
+, titleDiagram
 , momentDiagram
+, zfwMomentPoint
+, ffwMomentPoint
+, ufwMomentPoint
 , makepoly
+, c172sNormalCategoryPoly
+, c172sUtilityCategoryPoly
+, totalMomentPoundInchesPoint
 ) where
 
 import Control.Applicative((<*>))
 import Control.Category((.))
-import Control.Lens(view, preview, over, both, _head, snoc, (&~), (.=), (*=), (%=), (.~), (&))
+import Control.Lens(view, preview, review, over, both, _head, snoc, (&~), (.=), (*=), (%=), (.~), (&), (%~))
 import Control.Monad.State(State)
+import Data.Aviation.C172.C172AircraftArms
+import Data.Aviation.C172.C172MomentEnvelope
+import Data.Aviation.Units
+import Data.Aviation.WB.Moment
 import Data.Bool(Bool(True))
 import Data.Colour(Colour)
-import Data.Foldable(toList, mapM_)
+import Data.Foldable(Foldable, toList, mapM_)
 import Data.Function(($))
 import Data.Functor(fmap)
+import Data.CircularSeq(CSeq)
+import Data.Ext(ext, _core)
+import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
+import Data.Geometry.Point(Point, point2, _point2, xCoord, yCoord)
+import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Maybe(Maybe(Just), maybe)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2, black, red, green, lightgrey, darkgrey, local, _fontSize, rotateBy, (#), fc)
+import Diagrams.Prelude(V2, black, red, green, orange, lightgrey, darkgrey, local, _fontSize, rotateBy, (#), fc)
 import Diagrams.Combinators(sep)
 import Diagrams.Core.Measure(Measure)
 import Diagrams.Core.Style(HasStyle)
@@ -40,19 +56,15 @@ import Diagrams.TwoD.Combinators(vcat')
 import Diagrams.TwoD.Text(Text, alignedText, fontSizeL, font)
 import Diagrams.Util(with)
 import Diagrams.TwoD.Text(TextAlignment(BoxAlignedText))
-import Data.CircularSeq(CSeq)
-import Data.Ext(ext, _core)
-import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
-import Data.Geometry.Point(Point, point2, _point2)
-import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Semigroup((<>))
+import Data.String(String)
 import Data.Tuple(uncurry)
 import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax, yMax, xAxis, yAxis, 
              axisLabelPosition, (&=), AxisLabelPosition(MiddleAxisLabel), axisLabelStyle, tickLabelStyle, scaleAspectRatio, 
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Plots.Axis.Render(renderAxis)
-import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), (-), show, round)
+import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), show, round, subtract)
 import Text.Printf(printf)
 
 dejavuSansMono ::
@@ -126,37 +138,38 @@ plotenvelope =
             lineStyle . _lw .= l
   in  mapM_ (\g -> linePlotPolygon g black 0.7)
 
-plotmomentpoint :: 
-  Point 2 Rational
+crosshair ::
+  Rational
+  -> Rational
+  -> Point 2 Rational
   -> [(Point 2 Rational, Point 2 Rational)]
-plotmomentpoint pq =
-  let (p, q) =
-        _point2 pq
-  in  [
-        (point2 p (q - 50), point2 p (q + 50))
-      , (point2 (p - 5) q, point2 (p + 5) q)
-      ]
+crosshair a b pq =
+  [
+    (pq & yCoord %~ (subtract a), pq & yCoord %~ (+ a))
+  , (pq & xCoord %~ (subtract b), pq & xCoord %~ (+ b))
+  ]
 
 textreportDiagram :: 
   Renderable (Text Double) b =>
-  SimplePolygon () Rational
-  -> SimplePolygon () Rational
-  -> Point 2 Rational
-  -> (Point 2 Rational, Point 2 Rational)
+  C172AircraftArms Moment
   -> QDiagram b V2 Double Any
-textreportDiagram u n pq (zfw, ffw) =
-  let (p, q) =
+textreportDiagram m =
+  let pq =
+        totalMomentPoundInchesPoint m
+      (p, q) =
         _point2 pq
       (zfwp, zfwq) =
-        _point2 zfw
+        _point2 (zfwMomentPoint m)
+      (ufwp, ufwq) =
+        _point2 (ufwMomentPoint m)
       (ffwp, ffwq) =
-        _point2 ffw
+        _point2 (ffwMomentPoint m)
       textRational r =
         printf "%.2f" (fromRational r :: Double)
       utility =
-        pq `inPolygon` u
+        pq `inPolygon` c172sUtilityCategoryPoly
       normal =
-        pq `inPolygon` n
+        pq `inPolygon` c172sNormalCategoryPoly
       textPointLocationResult Inside =
         "YES"
       textPointLocationResult Outside = 
@@ -167,47 +180,93 @@ textreportDiagram u n pq (zfw, ffw) =
         alignedText a b x # fontSizeL 5 # dejavuSansMono # fc c
   in  vcat' (with & sep .~ 15)
         [
-            reporttext (0.570) (-02.80) ("Moment                           " <> textRational (p * 1000) <> " pound/inches") red
-          , reporttext (0.667) (-03.80) ("All Up Weight                    " <> textRational q <> " pounds") red
-          , reporttext (0.896) (-04.80) ("Utility Category                 " <> textPointLocationResult utility) red
-          , reporttext (0.871) (-05.80) ("Normal Category                  " <> textPointLocationResult normal) red
-          , reporttext (0.581) (-06.80) ("Zero Fuel Moment                 " <> textRational (zfwp * 1000) <> " pound/inches") green
-          , reporttext (0.668) (-07.80) ("Zero Fuel Weight                 " <> textRational zfwq <> " pounds") green
-          , reporttext (0.571) (-08.80) ("Fuel at Capacity Moment          " <> textRational (ffwp * 1000) <> " pound/inches") green
-          , reporttext (0.668) (-09.80) ("Fuel at Capacity Weight          " <> textRational ffwq <> " pounds") green 
+            reporttext (0.650) (-02.80) ("All Up Moment                    " <> textRational (p * 1000) <> " lb/in") red
+          , reporttext (0.725) (-03.80) ("All Up Weight                    " <> textRational q <> " lb") red
+          , reporttext (0.890) (-04.80) ("Utility Category                 " <> textPointLocationResult utility) red
+          , reporttext (0.865) (-05.80) ("Normal Category                  " <> textPointLocationResult normal) red
+          , reporttext (0.663) (-06.80) ("Zero Fuel Moment                 " <> textRational (zfwp * 1000) <> " lb/in") green
+          , reporttext (0.725) (-07.80) ("Zero Fuel Weight                 " <> textRational zfwq <> " lb") green
+          , reporttext (0.663) (-08.80) ("Usable Fuel Moment               " <> textRational (ufwp * 1000) <> " lb/in") orange
+          , reporttext (0.724) (-09.80) ("Usable Fuel Weight               " <> textRational ufwq <> " lb") orange
+          , reporttext (0.650) (-10.80) ("Fuel at Capacity Moment          " <> textRational (ffwp * 1000) <> " lb/in") green
+          , reporttext (0.726) (-11.80) ("Fuel at Capacity Weight          " <> textRational ffwq <> " lb") green 
         ]
  
 plotMomentDiagram :: 
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
-  SimplePolygon () Rational
-  -> SimplePolygon () Rational
-  -> [(Point 2 Rational, Point 2 Rational)]
-  -> (Point 2 Rational, Point 2 Rational)
+  C172AircraftArms Moment
   -> QDiagram b V2 Double Any
-plotMomentDiagram u n x fl =
-  let r = r2Axis &~ 
+plotMomentDiagram m =
+  let auwMomentPlot = crosshair 40 4 (totalMomentPoundInchesPoint m)
+      ufwMomentPlot = crosshair 20 2 (ufwMomentPoint m)
+      fl = (zfwMomentPoint m, ffwMomentPoint m)
+      r = r2Axis &~ 
             do  plotgrid
-                plotenvelope [u, n]
-                plotlines red 1.5 x
+                plotenvelope [c172sUtilityCategoryPoly, c172sNormalCategoryPoly]
+                plotlines red 1.5 auwMomentPlot
+                plotlines orange 1.0 ufwMomentPlot
                 plotlines green 1.5 [fl]
   in  renderAxis r # centerX # dejavuSansMono
 
+titleDiagram ::
+  Renderable (Text Double) b =>
+  String
+  -> QDiagram b V2 Double Any
+titleDiagram s =
+  alignedText 0.5 (-10) s # fontSizeL 5 # dejavuSansMono # fc black
+
 momentDiagram ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
-  SimplePolygon () Rational
-  -> SimplePolygon () Rational
-  -> Point 2 Rational
-  -> (Point 2 Rational, Point 2 Rational)
+  String
+  -> C172AircraftArms Moment
   -> QDiagram b V2 Double Any
-momentDiagram u n pq fl =
-  vcat' (with & sep .~ 15)
+momentDiagram s m =
+  vcat' (with & sep .~ 10)
     [
-      plotMomentDiagram u n (plotmomentpoint pq) fl
-    , textreportDiagram u n pq fl
+      plotMomentDiagram m
+    , textreportDiagram m
+    , titleDiagram s
     ]
+
+zfwMomentPoint ::
+  C172AircraftArms Moment
+  -> Point 2 Rational
+zfwMomentPoint =
+  totalMomentPoundInchesPoint . zfwMoment
+
+ffwMomentPoint ::
+  C172AircraftArms Moment
+  -> Point 2 Rational
+ffwMomentPoint =
+  totalMomentPoundInchesPoint . ffwMoment
+
+ufwMomentPoint ::
+  C172AircraftArms Moment
+  -> Point 2 Rational
+ufwMomentPoint =
+  totalMomentPoundInchesPoint . ufwMoment
 
 makepoly ::
   [(r, r)]
   -> SimplePolygon () r
 makepoly = 
   fromPoints . fmap (ext . uncurry point2)
+
+c172sNormalCategoryPoly :: 
+  SimplePolygon () Rational
+c172sNormalCategoryPoly =
+  makepoly c172sNormalCategory
+
+c172sUtilityCategoryPoly :: 
+  SimplePolygon () Rational
+c172sUtilityCategoryPoly =
+  makepoly c172UtilityCategory
+
+totalMomentPoundInchesPoint ::
+  (HasMoment moment, Foldable f) =>
+  f moment
+  -> Point 2 Rational
+totalMomentPoundInchesPoint x =
+  let mm = totalMoments pounds inches x
+      ww = totalWeights x
+  in  point2 (mm / 1000) (review pounds ww)

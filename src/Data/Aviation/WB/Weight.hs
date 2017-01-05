@@ -73,3 +73,4 @@ instance Monoid Weight where
     Weight 0
   Weight w1 `mappend` Weight w2 =
     Weight (w1 + w2)
+    

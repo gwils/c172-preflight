@@ -73,7 +73,6 @@ library
                     Data.Aviation.WB.Arm.ArmRangeUpper
                     Data.Aviation.WB.Moment
                     Data.Aviation.WB.Weight
-                    Data.Aviation.WB.Zerofuel
                     
                     Data.Aviation.Preflight
                     Data.Aviation.TakeoffLanding

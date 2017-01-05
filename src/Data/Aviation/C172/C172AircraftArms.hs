@@ -8,20 +8,25 @@ module Data.Aviation.C172.C172AircraftArms(
   C172AircraftArms(..)
 , HasC172AircraftArms(..)
 , bewC172AircraftArms
+, zfwMoment
+, ffwMoment
+, ufwMoment
+, totalC172Moment
 ) where
 
 import Control.Applicative(Applicative((<*>), pure))
-import Control.Lens(makeClassy, lens, (%~))
+import Control.Category((.))
+import Control.Lens(makeClassy, lens, (^.), (.~), (&))
 import Data.Aviation.C172.C172Arms
-import Data.Aviation.Units(Pounds)
+
+import Data.Aviation.Units(Pounds(pounds))
 import Data.Aviation.WB(ArmStatic)
-import Data.Aviation.WB.Arm(Arm, staticArm)
-import Data.Aviation.WB.Zerofuel(Zerofuel(zerofuel))
-import Data.Aviation.WB.Maximumfuel(Maximumfuel(maximumfuel))
+import Data.Aviation.WB.Arm(Arm, HasArmStatic, staticArm)
+import Data.Aviation.WB.Weight(HasWeight(weight))
+import Data.Aviation.WB.Moment(Moment, momentX)
 import Data.Eq(Eq)
 import Data.Foldable(Foldable(foldr))
 import Data.Functor(Functor(fmap), (<$>))
-import Data.Monoid
 import Data.Ord(Ord)
 import Data.Traversable(Traversable(traverse))
 import Prelude(Show)
@@ -36,14 +41,6 @@ data C172AircraftArms a =
   deriving (Eq, Ord, Show)
 
 makeClassy ''C172AircraftArms
-
-instance Monoid a => Zerofuel (C172AircraftArms a) where
-  zerofuel =
-    c172Arms %~ zerofuel
-
-instance Pounds a => Maximumfuel (C172AircraftArms a) where
-  maximumfuel =
-    c172Arms %~ maximumfuel
 
 instance HasC172Arms (C172AircraftArms a) a where
   c172Arms =
@@ -76,3 +73,34 @@ bewC172AircraftArms a =
   C172AircraftArms
     (staticArm a)
     c172ArmsPOH
+
+-- zero fuel
+zfwMoment ::
+  C172AircraftArms Moment
+  -> C172AircraftArms Moment
+zfwMoment x =
+  x & fuel . weight .~ 0 ^. pounds
+
+-- full fuel
+ffwMoment ::
+  C172AircraftArms Moment
+  -> C172AircraftArms Moment
+ffwMoment x =
+  x & fuel . weight .~ 336 ^. pounds
+
+-- unusable fuel
+ufwMoment ::
+  C172AircraftArms Moment
+  -> C172AircraftArms Moment
+ufwMoment x =
+  x & fuel . weight .~ 18 ^. pounds
+
+
+totalC172Moment ::
+  (HasWeight w, HasArmStatic s) =>
+  w
+  -> C172Arms w
+  -> C172AircraftArms s
+  -> C172AircraftArms Moment
+totalC172Moment bew wt am =
+  momentX (C172AircraftArms bew wt) am
