@@ -25,6 +25,12 @@ dynamicWeights =
   C172Arms
     (tony <> george)
     jess
+    -- being silly with fuel calculation, to demonstrate a point
+    -- the sum weight of
+    --   * 30 US gallons
+    --   * 15 litres
+    --   * 2 Imperial gallons
+    --   * 12 lb avgas
     (fold [30 ^. usgallonsV . avgas100LL, 15 ^. litresV . avgas100LL, 2 ^. imperialgallonsV . avgas100LL, 12 ^. pounds])
     (10 ^. kilograms)
     mempty
