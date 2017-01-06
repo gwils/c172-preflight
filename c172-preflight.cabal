@@ -7,13 +7,15 @@ maintainer:         Tony Morris, Joshua Morris
 copyright:          Copyright (c) 2017 Tony Morris, Joshua Morris
 synopsis:           C172
 category:           Aviation
-description:        Pre-flight checks for Cessna 172
+description:        
+  <<http://i.imgur.com/Ns5hntl.jpg>>
+  .
+  Pre-flight checks for Cessna 172
 homepage:           https://github.com/tonymorris/c172-preflight
 bug-reports:        https://github.com/tonymorris/c172-preflight/issues
 cabal-version:      >= 1.10
 build-type:         Custom
 extra-source-files: changelog
-
 source-repository   head
   type:             git
   location:         git@github.com:tonymorris/c172-preflight.git
@@ -41,6 +43,7 @@ library
                     , fixed-vector
                     , colour
                     , aviation-units
+                    , aviation-weight-balance
                     
   ghc-options:
                     -Wall
@@ -58,17 +61,7 @@ library
                     Data.Aviation.C172.C172Arms
                     Data.Aviation.C172.C172MomentEnvelope
                     Data.Aviation.C172.Diagrams
-                    Data.Aviation.WB
-                    Data.Aviation.WB.Arm
-                    Data.Aviation.WB.Arm.Arm
-                    Data.Aviation.WB.Arm.ArmRange
-                    Data.Aviation.WB.Arm.ArmRangeLower
-                    Data.Aviation.WB.Arm.ArmStatic
-                    Data.Aviation.WB.Arm.ArmRangeUpper
-                    Data.Aviation.WB.Avgas100LL
-                    Data.Aviation.WB.Moment
-                    Data.Aviation.WB.Volume
-                    Data.Aviation.WB.Weight
+                    
                     
                     Data.Aviation.Preflight
                     Data.Aviation.TakeoffLanding
