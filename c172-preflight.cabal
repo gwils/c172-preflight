@@ -5,7 +5,7 @@ license-file:       LICENSE
 author:             Tony Morris <ʇǝu˙sıɹɹoɯʇ@ןןǝʞsɐɥ>, Joshua Morris <ɯoɔ˙lᴉɐɯƃ@llǝʞsɐɥ+sᴉɹɹoɯuɥoɾɐnɥsoɾ>
 maintainer:         Tony Morris, Joshua Morris
 copyright:          Copyright (c) 2017 Tony Morris, Joshua Morris
-synopsis:           JSON parser.
+synopsis:           C172
 category:           Aviation
 description:        Pre-flight checks for Cessna 172
 homepage:           https://github.com/tonymorris/c172-preflight
@@ -40,6 +40,7 @@ library
                     , containers
                     , fixed-vector
                     , colour
+                    , aviation-units
                     
   ghc-options:
                     -Wall
@@ -57,15 +58,6 @@ library
                     Data.Aviation.C172.C172Arms
                     Data.Aviation.C172.C172MomentEnvelope
                     Data.Aviation.C172.Diagrams
-                    Data.Aviation.Units
-                    Data.Aviation.Units.Centimetres
-                    Data.Aviation.Units.ImperialGallons
-                    Data.Aviation.Units.Inches
-                    Data.Aviation.Units.Kilograms
-                    Data.Aviation.Units.Litres
-                    Data.Aviation.Units.Pounds
-                    Data.Aviation.Units.Thouinches
-                    Data.Aviation.Units.USGallons
                     Data.Aviation.WB
                     Data.Aviation.WB.Arm
                     Data.Aviation.WB.Arm.Arm
