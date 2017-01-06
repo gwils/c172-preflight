@@ -33,6 +33,7 @@ c172UtilityCategory =
   , (68, 1950)
   , (52.5, 1500)
   ]
+  
 -- not exported
 
 

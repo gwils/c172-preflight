@@ -17,8 +17,7 @@ module Data.Aviation.C172.C172AircraftArms(
 import Control.Applicative(Applicative((<*>), pure))
 import Control.Category((.))
 import Control.Lens(makeClassy, lens, (^.), (.~), (&))
-import Data.Aviation.C172.C172Arms
-
+import Data.Aviation.C172.C172Arms(C172Arms, HasC172Arms(c172Arms), fuel, c172ArmsPOH)
 import Data.Aviation.Units(Pounds(pounds))
 import Data.Aviation.WB(ArmStatic)
 import Data.Aviation.WB.Arm(Arm, HasArmStatic, staticArm)
