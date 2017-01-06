@@ -2,18 +2,20 @@ name:               c172-preflight
 version:            0.0.1
 license:            BSD3
 license-file:       LICENSE
-author:             Tony Morris <ʇǝu˙sıɹɹoɯʇ@ןןǝʞsɐɥ>
-maintainer:         Tony Morris
-copyright:          Copyright (c) 2016 Tony Morris
-synopsis:           JSON parser.
+author:             Tony Morris <ʇǝu˙sıɹɹoɯʇ@ןןǝʞsɐɥ>, Joshua Morris <ɯoɔ˙lᴉɐɯƃ@llǝʞsɐɥ+sᴉɹɹoɯuɥoɾɐnɥsoɾ>
+maintainer:         Tony Morris, Joshua Morris
+copyright:          Copyright (c) 2017 Tony Morris, Joshua Morris
+synopsis:           C172
 category:           Aviation
-description:        Pre-flight checks for Cessna 172
+description:        
+  <<http://i.imgur.com/Ns5hntl.jpg>>
+  .
+  Pre-flight checks for Cessna 172
 homepage:           https://github.com/tonymorris/c172-preflight
 bug-reports:        https://github.com/tonymorris/c172-preflight/issues
 cabal-version:      >= 1.10
 build-type:         Custom
 extra-source-files: changelog
-
 source-repository   head
   type:             git
   location:         git@github.com:tonymorris/c172-preflight.git
@@ -34,10 +36,14 @@ library
                     , diagrams-lib
                     , diagrams-rasterific
                     , diagrams-svg
+                    , mtl
                     , plots
                     , hgeometry
                     , containers
                     , fixed-vector
+                    , colour
+                    , aviation-units
+                    , aviation-weight-balance
                     
   ghc-options:
                     -Wall
@@ -50,8 +56,16 @@ library
                     src
 
   exposed-modules:
-                    Data.Aviation.Cessna172.Preflight
-
+                    Data.Aviation.C172
+                    Data.Aviation.C172.C172AircraftArms
+                    Data.Aviation.C172.C172Arms
+                    Data.Aviation.C172.C172MomentEnvelope
+                    Data.Aviation.C172.Diagrams
+                    
+                    
+                    Data.Aviation.Preflight
+                    Data.Aviation.TakeoffLanding
+                    
 test-suite doctests
   type:
                     exitcode-stdio-1.0
