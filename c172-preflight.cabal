@@ -44,6 +44,7 @@ library
                     , colour
                     , aviation-units
                     , aviation-weight-balance
+                    , aviation-cessna172-weight-balance
                     
   ghc-options:
                     -Wall
@@ -56,10 +57,6 @@ library
                     src
 
   exposed-modules:
-                    Data.Aviation.C172.WB
-                    Data.Aviation.C172.WB.C172AircraftArms
-                    Data.Aviation.C172.WB.C172Arms
-                    Data.Aviation.C172.WB.C172MomentEnvelope
                     Data.Aviation.C172.Diagrams
                     
                     
