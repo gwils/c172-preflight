@@ -74,4 +74,4 @@ main ::
   IO ()
 main =
   mapM_ (\(s, w, ws, a, o) ->
-    renderMomentDiagrams s (totalC172Moment w ws a) (mkSizeSpec (V2 (Just 1600) (Just 2272.4))) o) flightMoments
+    renderMomentDiagrams s (totalC172Moment w ws a) (mkSizeSpec (V2 (Just 800) (Just 1136.2))) o) flightMoments
