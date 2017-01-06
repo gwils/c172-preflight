@@ -27,6 +27,8 @@ module Data.Aviation.C172.Diagrams(
 , totalWeightsPounds
 , mtowLimit
 , mrwLimit
+, renderMomentDiagram
+, renderMomentDiagrams
 ) where
 
 import Control.Applicative((<*>))
@@ -39,25 +41,31 @@ import Data.Aviation.C172.C172MomentEnvelope
 import Data.Aviation.Units
 import Data.Aviation.WB.Moment
 import Data.Aviation.WB.Weight
-import Data.Bool(Bool(True))
+import Data.Bool(Bool(True, False))
+import Data.CircularSeq(CSeq)
 import Data.Colour(Colour)
+import Data.Ext(ext, _core)
 import Data.Foldable(Foldable, toList, mapM_)
 import Data.Function(($))
 import Data.Functor(fmap)
-import Data.CircularSeq(CSeq)
-import Data.Ext(ext, _core)
 import Data.Geometry.Boundary(PointLocationResult(Inside, Outside, OnBoundary))
 import Data.Geometry.Point(Point, point2, _point2, xCoord, yCoord)
 import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, outerBoundary)
 import Data.Maybe(Maybe(Just), maybe)
+import Data.Semigroup((<>))
+import Data.Tuple(fst)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
+import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
+import Diagrams.Backend.Cairo.Internal(Options(CairoOptions))
 import Diagrams.Prelude(V2, black, red, green, blue, lightgrey, darkgrey, darkmagenta, local, _fontSize, rotateBy, (#), fc)
 import Diagrams.Combinators(sep)
+import Diagrams.Core.Compile(renderDia)
 import Diagrams.Core.Measure(Measure)
 import Diagrams.Core.Style(HasStyle)
 import Diagrams.Core.Types(QDiagram, Renderable)
 import Diagrams.Path(Path)
+import Diagrams.Size(SizeSpec)
 import Diagrams.TwoD.Align(centerX)
 import Diagrams.TwoD.Attributes(lc)
 import Diagrams.TwoD.Combinators(vcat')
@@ -73,6 +81,7 @@ import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Plots.Axis.Render(renderAxis)
 import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), (-), show, round, subtract)
+import System.IO(IO)
 import Text.Printf(printf)
 
 dejavuSansMono ::
@@ -341,3 +350,25 @@ mrwLimit ::
   -> Rational
 mrwLimit m =
   totalWeightsPounds m - 2558
+
+renderMomentDiagram ::
+  String -- ^ diagram title
+  -> C172AircraftArms Moment
+  -> SizeSpec V2 Double -- ^ diagram size
+  -> OutputType -- ^ diagram output type
+  -> String -- ^ diagram output file
+  -> IO ()
+renderMomentDiagram l m z t f =
+  let momd = momentDiagram l m
+  in  fst (renderDia Cairo (CairoOptions f z t False) momd)
+
+renderMomentDiagrams ::
+  String -- ^ diagram title
+  -> C172AircraftArms Moment
+  -> SizeSpec V2 Double -- ^ diagram size
+  -> String -- ^ diagram output file, without file extension
+  -> IO ()
+renderMomentDiagrams l m z f =
+  mapM_
+    (\(e, t) -> renderMomentDiagram l m z t (f <> ('.' : e)))
+    [("png", PNG), ("ps", PS), ("pdf", PDF), ("svg", SVG)]

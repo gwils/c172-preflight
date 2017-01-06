@@ -1,18 +1,18 @@
-{-# OPTIONS_GHC -w #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 module Data.Aviation.Preflight where
 
-import Prelude
+import Control.Category((.))
 import Control.Lens((^.))
 import Diagrams.Prelude(V2(V2), mkSizeSpec)
-import Diagrams.Backend.Cairo(Cairo(Cairo), OutputType(PNG, PDF, PS, SVG))
-import Diagrams.Backend.Cairo.Internal(Options(CairoOptions))
-import Diagrams.Core.Compile(renderDia)
 import Data.Foldable(fold)
+import Data.Maybe(Maybe(Just))
+import Data.Monoid(mempty)
 import Data.Semigroup((<>))
 import Data.Aviation.C172
 import Data.Aviation.Units
 import Data.Aviation.WB
+import System.IO(IO)
 
 tony = 80 ^. kilograms
 george = 85 ^. kilograms
@@ -35,12 +35,12 @@ testFlightMoment = totalC172Moment vhlseBEW dynamicWeights vhlseArms
 main ::
   IO ()
 main =
-  let size = mkSizeSpec (V2 (Just 800) (Just 1131.2))
-      nosize = mkSizeSpec (V2 Nothing Nothing)
-      outputs = [("png", size, PNG), ("ps", size, PS), ("pdf", size, PDF), ("svg", nosize, SVG)]
-      momd = momentDiagram "20170102 Test Flight VH-LSE PAX: George, Jess" testFlightMoment
-      render (e, s, t) = fst (renderDia Cairo (CairoOptions ("dist/output." ++ e) s t False) momd)
-  in  mapM_ render outputs
+  renderMomentDiagrams
+    "20170102 Test Flight VH-LSE PAX: George, Jess"
+    testFlightMoment
+    (mkSizeSpec (V2 (Just 3200) (Just 4524.8)))
+    "dist/output"
+
 
 -- vhafrBEW = 1684.3 ^. pounds
 -- vhafrArms = 39.37 ^. inches
