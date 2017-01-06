@@ -45,6 +45,7 @@ library
                     , aviation-units
                     , aviation-weight-balance
                     , aviation-cessna172-weight-balance
+                    , aviation-cessna172-diagrams
                     
   ghc-options:
                     -Wall
@@ -57,9 +58,6 @@ library
                     src
 
   exposed-modules:
-                    Data.Aviation.C172.Diagrams
-                    
-                    
                     Data.Aviation.Preflight
                     Data.Aviation.TakeoffLanding
                     
