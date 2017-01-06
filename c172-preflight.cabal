@@ -56,10 +56,10 @@ library
                     src
 
   exposed-modules:
-                    Data.Aviation.C172
-                    Data.Aviation.C172.C172AircraftArms
-                    Data.Aviation.C172.C172Arms
-                    Data.Aviation.C172.C172MomentEnvelope
+                    Data.Aviation.C172.WB
+                    Data.Aviation.C172.WB.C172AircraftArms
+                    Data.Aviation.C172.WB.C172Arms
+                    Data.Aviation.C172.WB.C172MomentEnvelope
                     Data.Aviation.C172.Diagrams
                     
                     

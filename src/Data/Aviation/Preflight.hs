@@ -10,7 +10,8 @@ import Data.Foldable(fold)
 import Data.Maybe(Maybe(Just))
 import Data.Monoid(mempty)
 import Data.Semigroup((<>))
-import Data.Aviation.C172
+import Data.Aviation.C172.Diagrams
+import Data.Aviation.C172.WB
 import Data.Aviation.Units
 import Data.Aviation.WB
 import System.IO(IO)

@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Data.Aviation.C172.C172MomentEnvelope(
+module Data.Aviation.C172.WB.C172MomentEnvelope(
   c172rNormalCategory
 , c172sNormalCategory
 , c172UtilityCategory

@@ -35,9 +35,9 @@ import Control.Applicative((<*>))
 import Control.Category((.))
 import Control.Lens(view, preview, review, over, both, _head, snoc, re, (&~), (.=), (*=), (%=), (.~), (&), (%~))
 import Control.Monad.State(State)
-import Data.Aviation.C172.C172Arms
-import Data.Aviation.C172.C172AircraftArms
-import Data.Aviation.C172.C172MomentEnvelope
+import Data.Aviation.C172.WB.C172Arms
+import Data.Aviation.C172.WB.C172AircraftArms
+import Data.Aviation.C172.WB.C172MomentEnvelope
 import Data.Aviation.Units
 import Data.Aviation.WB.Moment
 import Data.Aviation.WB.Weight

@@ -4,7 +4,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Data.Aviation.C172.C172Arms(
+module Data.Aviation.C172.WB.C172Arms(
   C172Arms(..)
 , HasC172Arms(..)
 , c172ArmsPOH
