@@ -59,7 +59,6 @@ library
 
   exposed-modules:
                     Data.Aviation.Preflight
-                    Data.Aviation.TakeoffLanding
                     
 test-suite doctests
   type:
