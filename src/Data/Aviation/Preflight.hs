@@ -24,7 +24,7 @@ dynamicWeights =
   C172Arms
     (tony <> george)
     jess
-    (fold [10 ^. usgallonsV . avgas100LL, 15 ^. litresV . avgas100LL, 2 ^. imperialgallonsV . avgas100LL, 12 ^. pounds])
+    (fold [30 ^. usgallonsV . avgas100LL, 15 ^. litresV . avgas100LL, 2 ^. imperialgallonsV . avgas100LL, 12 ^. pounds])
     (10 ^. kilograms)
     mempty
 

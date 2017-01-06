@@ -21,16 +21,24 @@ module Data.Aviation.C172.Diagrams(
 , c172sNormalCategoryPoly
 , c172sUtilityCategoryPoly
 , totalMomentPoundInchesPoint
+, baggageaPoundsLimit
+, baggagebPoundsLimit
+, baggagetotalPoundsLimit
+, totalWeightsPounds
+, mtowLimit
+, mrwLimit
 ) where
 
 import Control.Applicative((<*>))
 import Control.Category((.))
-import Control.Lens(view, preview, review, over, both, _head, snoc, (&~), (.=), (*=), (%=), (.~), (&), (%~))
+import Control.Lens(view, preview, review, over, both, _head, snoc, re, (&~), (.=), (*=), (%=), (.~), (&), (%~))
 import Control.Monad.State(State)
+import Data.Aviation.C172.C172Arms
 import Data.Aviation.C172.C172AircraftArms
 import Data.Aviation.C172.C172MomentEnvelope
 import Data.Aviation.Units
 import Data.Aviation.WB.Moment
+import Data.Aviation.WB.Weight
 import Data.Bool(Bool(True))
 import Data.Colour(Colour)
 import Data.Foldable(Foldable, toList, mapM_)
@@ -44,7 +52,7 @@ import Data.Geometry.Polygon(SimplePolygon, Polygon, inPolygon, fromPoints, oute
 import Data.Maybe(Maybe(Just), maybe)
 import Data.Monoid(Any)
 import Diagrams.Attributes(lwO, _lw)
-import Diagrams.Prelude(V2, black, red, green, orange, lightgrey, darkgrey, local, _fontSize, rotateBy, (#), fc)
+import Diagrams.Prelude(V2, black, red, green, blue, lightgrey, darkgrey, darkmagenta, local, _fontSize, rotateBy, (#), fc)
 import Diagrams.Combinators(sep)
 import Diagrams.Core.Measure(Measure)
 import Diagrams.Core.Style(HasStyle)
@@ -64,7 +72,7 @@ import Plots(Axis, r2Axis, linePlot, plotColor, xLabel, yLabel, xMin, yMin, xMax
              minorGridLines, visible, axisLabelGap, axisLabelTextFunction, minorTicksHelper, minorTicksFunction, majorTicksStyle, 
              majorGridLinesStyle, minorGridLinesStyle, lineStyle, majorTicksFunction, atMajorTicks, tickLabelFunction)
 import Plots.Axis.Render(renderAxis)
-import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), show, round, subtract)
+import Prelude(Rational, Double, Int, Fractional((/)), fromRational, (*), (+), (-), show, round, subtract)
 import Text.Printf(printf)
 
 dejavuSansMono ::
@@ -176,6 +184,16 @@ textreportDiagram m =
         "NO"
       textPointLocationResult OnBoundary = 
         "NO"
+      baggageaL =
+        textRational (baggageaPoundsLimit m)
+      baggagebL =
+        textRational (baggagebPoundsLimit m)
+      baggagetotalL =
+        textRational (baggagetotalPoundsLimit m)
+      mtowL =
+        textRational (mtowLimit m)
+      mrwL =
+        textRational (mrwLimit m)
       reporttext a b x c =
         alignedText a b x # fontSizeL 5 # dejavuSansMono # fc c
   in  vcat' (with & sep .~ 15)
@@ -186,10 +204,15 @@ textreportDiagram m =
           , reporttext (0.865) (-05.80) ("Normal Category                  " <> textPointLocationResult normal) red
           , reporttext (0.663) (-06.80) ("Zero Fuel Moment                 " <> textRational (zfwp * 1000) <> " lb/in") green
           , reporttext (0.725) (-07.80) ("Zero Fuel Weight                 " <> textRational zfwq <> " lb") green
-          , reporttext (0.663) (-08.80) ("Usable Fuel Moment               " <> textRational (ufwp * 1000) <> " lb/in") orange
-          , reporttext (0.724) (-09.80) ("Usable Fuel Weight               " <> textRational ufwq <> " lb") orange
+          , reporttext (0.663) (-08.80) ("Usable Fuel Moment               " <> textRational (ufwp * 1000) <> " lb/in") blue
+          , reporttext (0.724) (-09.80) ("Usable Fuel Weight               " <> textRational ufwq <> " lb") blue
           , reporttext (0.650) (-10.80) ("Fuel at Capacity Moment          " <> textRational (ffwp * 1000) <> " lb/in") green
           , reporttext (0.726) (-11.80) ("Fuel at Capacity Weight          " <> textRational ffwq <> " lb") green 
+          , reporttext (0.742) (-12.80) ("Baggage A limit                  " <> baggageaL <> " lb") darkmagenta 
+          , reporttext (0.742) (-13.80) ("Baggage B limit                  " <> baggagebL <> " lb") darkmagenta
+          , reporttext (0.742) (-14.80) ("Baggage total limit              " <> baggagetotalL <> " lb") darkmagenta
+          , reporttext (0.724) (-15.80) ("MTOW limit                       " <> mtowL <> " lb") darkmagenta
+          , reporttext (0.724) (-16.80) ("MRW limit                        " <> mrwL <> " lb") darkmagenta
         ]
  
 plotMomentDiagram :: 
@@ -204,7 +227,7 @@ plotMomentDiagram m =
             do  plotgrid
                 plotenvelope [c172sUtilityCategoryPoly, c172sNormalCategoryPoly]
                 plotlines red 1.5 auwMomentPlot
-                plotlines orange 1.0 ufwMomentPlot
+                plotlines blue 1.0 ufwMomentPlot
                 plotlines green 1.5 [fl]
   in  renderAxis r # centerX # dejavuSansMono
 
@@ -213,7 +236,7 @@ titleDiagram ::
   String
   -> QDiagram b V2 Double Any
 titleDiagram s =
-  alignedText 0.5 (-10) s # fontSizeL 5 # dejavuSansMono # fc black
+  alignedText 0.5 (-15) s # fontSizeL 5 # dejavuSansMono # fc black
 
 momentDiagram ::
   (Renderable (Text Double) b, Renderable (Path V2 Double) b) =>
@@ -270,3 +293,51 @@ totalMomentPoundInchesPoint x =
   let mm = totalMoments pounds inches x
       ww = totalWeights x
   in  point2 (mm / 1000) (review pounds ww)
+
+baggageaPounds ::
+  C172AircraftArms Moment
+  -> Rational
+baggageaPounds m =
+  view (baggagea . weight . re pounds) m
+
+baggagebPounds ::
+  C172AircraftArms Moment
+  -> Rational
+baggagebPounds m =
+  view (baggageb . weight . re pounds) m
+
+baggageaPoundsLimit ::
+  C172AircraftArms Moment
+  -> Rational
+baggageaPoundsLimit m =
+  baggageaPounds m - 120
+
+baggagebPoundsLimit ::
+  C172AircraftArms Moment
+  -> Rational
+baggagebPoundsLimit m =
+  baggagebPounds m - 50
+
+baggagetotalPoundsLimit ::
+  C172AircraftArms Moment
+  -> Rational
+baggagetotalPoundsLimit m =
+  (baggageaPounds m + baggagebPounds m) - 120
+
+totalWeightsPounds ::
+  C172AircraftArms Moment
+  -> Rational
+totalWeightsPounds =
+  view (re pounds) . totalWeights
+
+mtowLimit ::
+  C172AircraftArms Moment
+  -> Rational
+mtowLimit m =
+  totalWeightsPounds m - 2550
+
+mrwLimit ::
+  C172AircraftArms Moment
+  -> Rational
+mrwLimit m =
+  totalWeightsPounds m - 2558

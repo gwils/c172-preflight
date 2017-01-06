@@ -474,27 +474,27 @@ intervalsTemperature (Temperature n) (C172ShortFieldChart _0 _1 _2 _3 _4) =
 -- |
 --
 -- >>> todr (PressureAltitude 3500) (Temperature 25) c172s_2550lbs_groundroll_takeoff
--- 1427.5
+-- 2855 % 2
 --
 -- >>> todr (PressureAltitude 3000) (Temperature 20) c172s_2550lbs_groundroll_takeoff
--- 1310.0
+-- 1310 % 1
 --
 -- >>> todr (PressureAltitude 3000) (Temperature 25) c172s_2550lbs_groundroll_takeoff
--- 1360.0
+-- 1360 % 1
 --
 -- >>> todr (PressureAltitude 3500) (Temperature 20) c172s_2550lbs_groundroll_takeoff
--- 1375.0
+-- 1375 % 1
 --
 -- >>> todr (PressureAltitude 3250) (Temperature 27) c172s_2550lbs_groundroll_takeoff
--- 1414.25
+-- 5657 % 4
 --
 -- >>> todr (PressureAltitude 5130) (Temperature 14) c172s_2550lbs_groundroll_takeoff
--- 1533.02
+-- 76651 % 50
 todr ::
   PressureAltitude
   -> Temperature
   -> TakeOffDistance
-  -> Double
+  -> Rational
 todr e b chart =
   let (x,  y,  q) = intervalsPressureAltitude e chart
       (x0, y0, r) = intervalsTemperature b x
