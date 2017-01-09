@@ -23,12 +23,18 @@ jessicaatherton = 55 ^. kilograms
 joshuamorris = 64 ^. kilograms
 amandaward = 100 ^. kilograms
 adammorris = 55 ^. kilograms
+gregdavis = 70 ^. kilograms
+robertdenney = 100 ^. kilograms
+jackmason = 70 ^. kilograms
 
 vhlseBEW = 1691.6 ^. pounds
 vhlseArms = bewC172AircraftArms (40.6 ^. inches)
 
--- vhafrBEW = 1684.3 ^. pounds
--- vhafrArms = 39.37 ^. inches
+vhafrBEW :: Weight
+vhafrBEW = 1684.3 ^. pounds
+
+vhafrArms :: C172AircraftArms Arm
+vhafrArms = bewC172AircraftArms (40.6 ^. inches)
 
 flight20170102Weight ::
   C172Arms Weight
@@ -50,6 +56,26 @@ flight20170121Weight =
     (10 ^. kilograms)
     mempty
 
+denneyDavisMasonVHLSE ::
+  C172Arms Weight
+denneyDavisMasonVHLSE =
+  C172Arms
+    (tonymorris <> robertdenney)
+    (gregdavis <> jackmason)
+    (24 ^. usgallonsV . avgas100LL)
+    (5 ^. kilograms)
+    mempty
+
+denneyDavisMasonVHAFR ::
+  C172Arms Weight
+denneyDavisMasonVHAFR =
+  C172Arms
+    (tonymorris <> robertdenney)
+    (gregdavis <> jackmason)
+    (26 ^. usgallonsV . avgas100LL)
+    (5 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -67,6 +93,20 @@ flightMoments =
     , flight20170121Weight
     , vhlseArms
     , "dist/flight20170121"
+    )
+  , (
+      "Hypothetical flight VH-LSE PAX: Robert Denney, Greg Davis, Jack Mason"
+    , vhlseBEW
+    , denneyDavisMasonVHLSE
+    , vhlseArms
+    , "dist/denneyDavisMasonVHLSE"
+    )
+  , (
+      "Hypothetical flight VH-AFR PAX: Robert Denney, Greg Davis, Jack Mason"
+    , vhafrBEW
+    , denneyDavisMasonVHAFR
+    , vhafrArms
+    , "dist/denneyDavisMasonVHAFR"
     )
   ]
 
