@@ -5,16 +5,11 @@ module Data.Aviation.Preflight where
 
 import Control.Category((.))
 import Control.Lens((^.))
-import Diagrams.Prelude(V2(V2), mkSizeSpec)
-import Data.Foldable(mapM_)
-import Data.Maybe(Maybe(Just))
 import Data.Semigroup((<>))
-import Data.Aviation.C172.Diagrams
 import Data.Aviation.C172.WB
-import Data.Aviation.Units
+import Data.Aviation.Units(kilograms, inches, pounds)
 import Data.Aviation.WB
 import Data.String(String)
-import System.IO(IO)
 
 tonymorris = 80 ^. kilograms
 george = 85 ^. kilograms
@@ -40,7 +35,7 @@ flight20170131Weight =
     (tonymorris <> george)
     (jessica <> joshua)
     (40 ^. usgallonsV . avgas100LL)
-    (30 ^. kilograms)
+    (20 ^. kilograms)
     (10 ^. kilograms)
 
 flightMoments ::
@@ -55,9 +50,3 @@ flightMoments =
     , "dist/flight20170131"
     )
   ]
-
-main ::
-  IO ()
-main =
-  mapM_ (\(s, w, ws, a, o) ->
-    renderMomentDiagrams s (totalC172Moment w ws a) (mkSizeSpec (V2 (Just 800) (Just 1131.2))) o) flightMoments
