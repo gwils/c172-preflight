@@ -21,6 +21,9 @@ adammorris = 55 ^. kilograms
 gregdavis = 70 ^. kilograms
 robertdenney = 100 ^. kilograms
 jackmason = 70 ^. kilograms
+paulbarber = 90 ^. kilograms
+maceybarber = 34 ^. kilograms
+ethanbarber = 47 ^. kilograms
 
 vhlseBEW = 1691.6 ^. pounds
 vhlseArms = bewC172AircraftArms (40.6 ^. inches)
@@ -71,6 +74,16 @@ denneyDavisMasonVHAFR =
     (5 ^. kilograms)
     mempty
 
+flight20170819Weight ::
+  C172Arms Weight
+flight20170819Weight =
+  C172Arms
+    (tonymorris <> paulbarber)
+    (maceybarber <> ethanbarber)
+    (56 ^. usgallonsV . avgas100LL)
+    (5 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -102,5 +115,12 @@ flightMoments =
     , denneyDavisMasonVHAFR
     , vhafrArms
     , "dist/denneyDavisMasonVHAFR"
+    )
+  , (
+      "Paul, Macey, Ethan"
+    , vhlseBEW
+    , flight20170819Weight
+    , vhlseArms
+    , "dist/paulMaceyEthanVHLSE"
     )
   ]
