@@ -80,7 +80,7 @@ flight20170819Weight =
   C172Arms
     (tonymorris <> paulbarber)
     (maceybarber <> ethanbarber)
-    (56 ^. usgallonsV . avgas100LL)
+    (45 ^. usgallonsV . avgas100LL)
     (5 ^. kilograms)
     mempty
 
