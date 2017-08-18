@@ -74,9 +74,9 @@ denneyDavisMasonVHAFR =
     (5 ^. kilograms)
     mempty
 
-flight20170819Weight ::
+flight20170820Weight ::
   C172Arms Weight
-flight20170819Weight =
+flight20170820Weight =
   C172Arms
     (tonymorris <> paulbarber)
     (maceybarber <> ethanbarber)
@@ -117,9 +117,9 @@ flightMoments =
     , "dist/denneyDavisMasonVHAFR"
     )
   , (
-      "VH-LSE. Paul (front seat), Macey, Ethan. Fuel: 160L, BagA: 10kg, BagB: 5kg"
+      "20170820 VH-LSE. Paul (front seat), Macey, Ethan. Fuel: 160L, BagA: 10kg, BagB: 5kg"
     , vhlseBEW
-    , flight20170819Weight
+    , flight20170820Weight
     , vhlseArms
     , "dist/paulMaceyEthanVHLSE"
     )
