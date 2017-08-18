@@ -117,7 +117,7 @@ flightMoments =
     , "dist/denneyDavisMasonVHAFR"
     )
   , (
-      "Paul, Macey, Ethan"
+      "VH-LSE. Paul (front seat), Macey, Ethan"
     , vhlseBEW
     , flight20170819Weight
     , vhlseArms
