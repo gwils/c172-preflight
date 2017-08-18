@@ -80,9 +80,9 @@ flight20170819Weight =
   C172Arms
     (tonymorris <> paulbarber)
     (maceybarber <> ethanbarber)
-    (45 ^. usgallonsV . avgas100LL)
+    (160 ^. litresV . avgas100LL)
+    (10 ^. kilograms)
     (5 ^. kilograms)
-    mempty
 
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
@@ -117,7 +117,7 @@ flightMoments =
     , "dist/denneyDavisMasonVHAFR"
     )
   , (
-      "VH-LSE. Paul (front seat), Macey, Ethan"
+      "VH-LSE. Paul (front seat), Macey, Ethan. Fuel: 160L, BagA: 10kg, BagB: 5kg"
     , vhlseBEW
     , flight20170819Weight
     , vhlseArms

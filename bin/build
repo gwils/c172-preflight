@@ -1,0 +1,6 @@
+#!/bin/sh
+
+nix-build 
+mkdir -p dist
+./result/bin/c172-preflight
+
