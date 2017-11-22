@@ -24,6 +24,11 @@ jackmason = 70 ^. kilograms
 paulbarber = 90 ^. kilograms
 maceybarber = 34 ^. kilograms
 ethanbarber = 47 ^. kilograms
+stephenwatson = 75 ^. kilograms
+
+vhkjrBEW = 1477.7 ^. pounds
+-- moment = 667.344 (obtained over the phone)
+vhkjrArms = bewC172AircraftArms (45.1 ^. inches)
 
 vhlseBEW = 1691.6 ^. pounds
 vhlseArms = bewC172AircraftArms (40.6 ^. inches)
@@ -84,6 +89,16 @@ flight20170820Weight =
     (10 ^. kilograms)
     (5 ^. kilograms)
 
+dualflightKJR ::
+  C172Arms Weight
+dualflightKJR =
+  C172Arms
+    (tonymorris <> stephenwatson)
+    mempty
+    (54 ^. usgallonsV . avgas100LL)
+    (10 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -122,5 +137,12 @@ flightMoments =
     , flight20170820Weight
     , vhlseArms
     , "dist/paulMaceyEthanVHLSE"
+    )
+  , (
+      "20171122 VH-KJR. Dual flight with Stephen Watson with 10kg baggage(A)"
+    , vhkjrBEW
+    , dualflightKJR
+    , vhkjrArms
+    , "dist/dualflightKJR"
     )
   ]
