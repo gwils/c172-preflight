@@ -99,6 +99,16 @@ dualflightKJR =
     (10 ^. kilograms)
     mempty
 
+soloflightKJR ::
+  C172Arms Weight
+soloflightKJR =
+  C172Arms
+    tonymorris
+    mempty
+    (54 ^. usgallonsV . avgas100LL)
+    (10 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -139,10 +149,17 @@ flightMoments =
     , "dist/paulMaceyEthanVHLSE"
     )
   , (
-      "20171122 VH-KJR. Dual flight with Stephen Watson with 10kg baggage(A)"
+      "20171123 VH-KJR. Dual flight with Stephen Watson with 10kg baggage(A)"
     , vhkjrBEW
     , dualflightKJR
     , vhkjrArms
     , "dist/dualflightKJR"
+    )
+  , (
+      "20171124 VH-KJR. Solo flight with 10kg baggage(A)"
+    , vhkjrBEW
+    , soloflightKJR
+    , vhkjrArms
+    , "dist/soloflightKJR"
     )
   ]
