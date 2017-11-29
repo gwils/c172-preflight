@@ -25,6 +25,8 @@ paulbarber = 90 ^. kilograms
 maceybarber = 34 ^. kilograms
 ethanbarber = 47 ^. kilograms
 stephenwatson = 75 ^. kilograms
+jedws = 75 ^. kilograms
+julien = 75 ^. kilograms
 
 vhkjrBEW = 1477.7 ^. pounds
 -- moment = 667.344 (obtained over the phone)
@@ -109,6 +111,16 @@ soloflightKJR =
     (10 ^. kilograms)
     mempty
 
+flight20171204Weight ::
+  C172Arms Weight
+flight20171204Weight =
+  C172Arms
+    (tonymorris <> jedws)
+    (julien)
+    (53 ^. usgallonsV . avgas100LL)
+    (10 ^. kilograms)
+    (5 ^. kilograms)
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -161,5 +173,12 @@ flightMoments =
     , soloflightKJR
     , vhkjrArms
     , "dist/soloflightKJR"
+    )
+  , (
+      "20171204 VH-LSE. Flight with jedws and julien, 10kg baggage(A), 5kg baggage(B)"
+    , vhlseBEW
+    , flight20171204Weight
+    , vhlseArms
+    , "dist/flight20171204Weight"
     )
   ]
