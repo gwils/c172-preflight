@@ -27,6 +27,8 @@ ethanbarber = 47 ^. kilograms
 stephenwatson = 75 ^. kilograms
 jedws = 75 ^. kilograms
 julien = 75 ^. kilograms
+craigwatt = 110 ^. kilograms
+butch = 100 ^. kilograms
 
 vhkjrBEW = 1477.7 ^. pounds
 -- moment = 667.344 (obtained over the phone)
@@ -121,6 +123,16 @@ flight20171204Weight =
     (10 ^. kilograms)
     (5 ^. kilograms)
 
+flight20171229Weight ::
+  C172Arms Weight
+flight20171229Weight =
+  C172Arms
+    (tonymorris <> butch)
+    (craigwatt)
+    (125 ^. litresV . avgas100LL)
+    (9 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -180,5 +192,12 @@ flightMoments =
     , flight20171204Weight
     , vhlseArms
     , "dist/flight20171204Weight"
+    )
+  , (
+      "20171229 VH-LSE. Flight with Craig and Butch Watt, 15kg baggage(A), 0kg baggage(B)"
+    , vhlseBEW
+    , flight20171229Weight
+    , vhlseArms
+    , "dist/flight20171229Weight"
     )
   ]
