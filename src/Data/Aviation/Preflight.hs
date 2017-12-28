@@ -129,7 +129,7 @@ flight20171229Weight =
   C172Arms
     (tonymorris <> butch)
     (craigwatt)
-    (125 ^. litresV . avgas100LL)
+    (130 ^. litresV . avgas100LL)
     (9 ^. kilograms)
     mempty
 
