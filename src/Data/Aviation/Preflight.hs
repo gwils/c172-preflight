@@ -29,6 +29,8 @@ jedws = 75 ^. kilograms
 julien = 75 ^. kilograms
 craigwatt = 110 ^. kilograms
 butch = 100 ^. kilograms
+nickhamilton = 70 ^. kilograms
+sarahvandyke = 60 ^. kilograms
 
 vhkjrBEW = 1477.7 ^. pounds
 -- moment = 667.344 (obtained over the phone)
@@ -133,6 +135,16 @@ flight20171229Weight =
     (9 ^. kilograms)
     mempty
 
+flight20180107Weight ::
+  C172Arms Weight
+flight20180107Weight =
+  C172Arms
+    (tonymorris <> nickhamilton)
+    (sarahvandyke)
+    (56 ^. usgallonsV . avgas100LL)
+    (5 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -199,5 +211,12 @@ flightMoments =
     , flight20171229Weight
     , vhlseArms
     , "dist/flight20171229Weight"
+    )
+  , (
+      "20180107 VH-LSE. Flight with Nick and Sarah, 5kg baggage(A), 0kg baggage(B)"
+    , vhlseBEW
+    , flight20180107Weight
+    , vhlseArms
+    , "dist/flight20180107Weight"
     )
   ]
