@@ -30,7 +30,7 @@ julien = 75 ^. kilograms
 craigwatt = 110 ^. kilograms
 butch = 100 ^. kilograms
 nickhamilton = 70 ^. kilograms
-sarahvandyke = 60 ^. kilograms
+-- sarahvandyke = 60 ^. kilograms
 
 vhkjrBEW = 1477.7 ^. pounds
 -- moment = 667.344 (obtained over the phone)
@@ -140,7 +140,7 @@ flight20180107Weight ::
 flight20180107Weight =
   C172Arms
     (tonymorris <> nickhamilton)
-    (sarahvandyke)
+    mempty
     (56 ^. usgallonsV . avgas100LL)
     (5 ^. kilograms)
     mempty
