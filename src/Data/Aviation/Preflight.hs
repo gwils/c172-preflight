@@ -30,6 +30,7 @@ julien = 75 ^. kilograms
 craigwatt = 110 ^. kilograms
 butch = 100 ^. kilograms
 nickhamilton = 70 ^. kilograms
+antheahawley = 80 ^. kilograms
 -- sarahvandyke = 60 ^. kilograms
 
 vhkjrBEW = 1477.7 ^. pounds
@@ -145,6 +146,16 @@ flight20180107Weight =
     (5 ^. kilograms)
     mempty
 
+flight20180204Weight ::
+  C172Arms Weight
+flight20180204Weight =
+  C172Arms
+    (tonymorris <> antheahawley)
+    mempty
+    (56 ^. usgallonsV . avgas100LL)
+    (15 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -218,5 +229,12 @@ flightMoments =
     , flight20180107Weight
     , vhlseArms
     , "dist/flight20180107Weight"
+    )
+  , (
+      "20180204 VH-AFR. Flight with Anthea Hawley, 15kg baggage(A), 0kg baggage(B)"
+    , vhafrBEW
+    , flight20180204Weight
+    , vhafrArms
+    , "dist/flight20180204Weight"
     )
   ]
