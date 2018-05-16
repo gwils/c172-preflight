@@ -156,6 +156,26 @@ flight20180204Weight =
     (15 ^. kilograms)
     mempty
 
+flightCraigPaul ::
+  C172Arms Weight
+flightCraigPaul =
+  C172Arms
+    (tonymorris <> craigwatt)
+    paulbarber
+    (56 ^. usgallonsV . avgas100LL)
+    (20 ^. kilograms)
+    mempty
+
+flightPaulCraig ::
+  C172Arms Weight
+flightCraigPaul =
+  C172Arms
+    (tonymorris <> paulbarber)
+    craigwatt
+    (56 ^. usgallonsV . avgas100LL)
+    (20 ^. kilograms)
+    mempty
+
 flightMoments ::
   [(String, Weight, C172Arms Weight, C172AircraftArms Arm, String)]
 flightMoments =
@@ -236,5 +256,12 @@ flightMoments =
     , flight20180204Weight
     , vhafrArms
     , "dist/flight20180204Weight"
+    )
+  , (
+      "Craig&Paul VH-AFR.  20kg baggage(A), 0kg baggage(B)"
+    , vhafrBEW
+    , flightCraigPaul
+    , vhafrArms
+    , "dist/flightCraigPaul"
     )
   ]

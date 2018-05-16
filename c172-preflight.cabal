@@ -14,7 +14,7 @@ description:
 homepage:           https://github.com/tonymorris/c172-preflight
 bug-reports:        https://github.com/tonymorris/c172-preflight/issues
 cabal-version:      >= 1.10
-build-type:         Custom
+build-type:         Simple
 extra-source-files: changelog
 source-repository   head
   type:             git
