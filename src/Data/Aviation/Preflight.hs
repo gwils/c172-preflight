@@ -31,6 +31,10 @@ craigwatt = 110 ^. kilograms
 butch = 100 ^. kilograms
 nickhamilton = 70 ^. kilograms
 antheahawley = 80 ^. kilograms
+jae = 100 ^. kilograms
+brendonhinze = 120 ^. kilograms
+kaydenhinze = 65 ^. kilograms
+
 -- sarahvandyke = 60 ^. kilograms
 
 vhkjrBEW = 1477.7 ^. pounds
@@ -40,11 +44,12 @@ vhkjrArms = bewC172AircraftArms (45.1 ^. inches)
 vhlseBEW = 1691.6 ^. pounds
 vhlseArms = bewC172AircraftArms (40.6 ^. inches)
 
-vhafrBEW :: Weight
 vhafrBEW = 1684.3 ^. pounds
-
-vhafrArms :: C172AircraftArms Arm
 vhafrArms = bewC172AircraftArms (40.6 ^. inches)
+
+-- incorrect!!
+vhkitBEW = 1684.3 ^. pounds
+vhkitArms = bewC172AircraftArms (40.6 ^. inches)
 
 flight20170102Weight ::
   C172Arms Weight
@@ -168,10 +173,30 @@ flightCraigPaul =
 
 flightPaulCraig ::
   C172Arms Weight
-flightCraigPaul =
+flightPaulCraig =
   C172Arms
     (tonymorris <> paulbarber)
     craigwatt
+    (56 ^. usgallonsV . avgas100LL)
+    (20 ^. kilograms)
+    mempty
+
+flightJae ::
+  C172Arms Weight
+flightJae =
+  C172Arms
+    (tonymorris <> jae)
+    mempty
+    (56 ^. usgallonsV . avgas100LL)
+    (20 ^. kilograms)
+    mempty
+
+flight20190406 ::
+  C172Arms Weight
+flight20190406 =
+  C172Arms
+    (tonymorris <> jae)
+    mempty
     (56 ^. usgallonsV . avgas100LL)
     (20 ^. kilograms)
     mempty
@@ -263,5 +288,12 @@ flightMoments =
     , flightCraigPaul
     , vhafrArms
     , "dist/flightCraigPaul"
+    )
+  , (
+      "20180620 Jae VH-KIT.  20kg baggage(A), 0kg baggage(B)"
+    , vhkitBEW
+    , flightJae
+    , vhkitArms
+    , "dist/flight20180620Jae"
     )
   ]
