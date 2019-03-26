@@ -1,11 +1,11 @@
-{ nixpkgs ? import <nixpkgs> {}, compiler ? "default" }:
+{ nixpkgs ? import ./nixpkgs.nix, compiler ? "default" }:
 
 let
 
   inherit (nixpkgs) pkgs;
 
   haskellPackages = if compiler == "default"
-                       then pkgs.haskellPackages
+                       then pkgs.haskell.packages.ghc822
                        else pkgs.haskell.packages.${compiler};
 
   sources = {
@@ -69,22 +69,23 @@ let
 
   modifiedHaskellPackages = haskellPackages.override {
     overrides = self: super: import sources.papa self // {
-      aviation-units = super.callCabal2nix "aviation-units" "${sources.aviation-units}" {};
-      aviation-weight-balance = super.callCabal2nix "aviation-weight-balance" "${sources.aviation-weight-balance}" {};
-      aviation-cessna172-weight-balance = super.callCabal2nix "aviation-cessna172-weight-balance" "${sources.aviation-cessna172-weight-balance}" {};
-      aviation-cessna172-diagrams = super.callCabal2nix "aviation-cessna172-diagrams" "${sources.aviation-cessna172-diagrams}" {};
-      parsers = pkgs.haskell.lib.dontCheck super.parsers;        
-      intervals = super.callCabal2nix "intervals" "${sources.intervals}" {};
-      hgeometry = pkgs.haskell.lib.dontCheck (super.callCabal2nix "hgeometry" "${sources.hgeometry}" {});
+      aviation-units = pkgs.haskell.lib.dontHaddock (super.callCabal2nix "aviation-units" "${sources.aviation-units}" {});
+      aviation-weight-balance = pkgs.haskell.lib.dontHaddock (super.callCabal2nix "aviation-weight-balance" "${sources.aviation-weight-balance}" {});
+      aviation-cessna172-weight-balance = pkgs.haskell.lib.dontHaddock (super.callCabal2nix "aviation-cessna172-weight-balance" "${sources.aviation-cessna172-weight-balance}" {});
+      aviation-cessna172-diagrams = pkgs.haskell.lib.dontHaddock (super.callCabal2nix "aviation-cessna172-diagrams" "${sources.aviation-cessna172-diagrams}" {});
+      #parsers = pkgs.haskell.lib.dontCheck super.parsers;        
+      #intervals = super.callCabal2nix "intervals" "${sources.intervals}" {};
+      #hgeometry = pkgs.haskell.lib.dontCheck (super.callCabal2nix "hgeometry" "${sources.hgeometry}" {});
       vinyl = super.callCabal2nix "vinyl" "${sources.vinyl}" {};
-      Frames = self.callHackage "Frames" "0.1.9" {};
-      singletons = pkgs.haskell.lib.dontCheck (self.callHackage "singletons" "2.1" {});
-      th-desugar = self.callHackage "th-desugar" "1.6" {};
-      fixed-vector = self.callHackage "fixed-vector" "0.9.0.0" {};
-      semigroupoids = pkgs.haskell.lib.dontCheck (self.callHackage "semigroupoids" "5.2" {});
-      linear = pkgs.haskell.lib.dontHaddock ( pkgs.haskell.lib.dontCheck (self.callHackage "linear" "1.20.6" {}));
-      diagrams-lib = pkgs.haskell.lib.dontCheck super.diagrams-lib;
-      plots = pkgs.haskell.lib.dontHaddock super.plots;
+      #Frames = self.callHackage "Frames" "0.1.9" {};
+      #gtk2hs-buildtools = self.callHackage "gtk2hs-buildtools" "0.13.5.0" {};
+      #singletons = pkgs.haskell.lib.dontCheck (super.singletons);
+      #th-desugar = self.callHackage "th-desugar" "1.6" {};
+      #fixed-vector = self.callHackage "fixed-vector" "1.2.0.0" {};
+      #semigroupoids = pkgs.haskell.lib.dontCheck (super.semigroupoids);
+      #linear = pkgs.haskell.lib.dontHaddock ( pkgs.haskell.lib.dontCheck (super.linear));
+      #diagrams-lib = pkgs.haskell.lib.dontCheck super.diagrams-lib;
+      plots = pkgs.haskell.lib.doJailbreak (pkgs.haskell.lib.dontHaddock super.plots);
     };
   };
 
