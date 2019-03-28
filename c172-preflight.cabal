@@ -83,6 +83,7 @@ executable          c172-preflight
                     , aviation-weight-balance
                     , aviation-cessna172-weight-balance
                     , aviation-cessna172-diagrams
+                    , c172-preflight
                     
   ghc-options:
                     -Wall
@@ -92,5 +93,5 @@ executable          c172-preflight
                     NoImplicitPrelude
 
   hs-source-dirs:
-                    src
+                    src-exe
    
