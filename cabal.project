@@ -1,0 +1,22 @@
+packages:
+  ./
+
+source-repository-package
+  type:git
+  location: https://github.com/qfpl/aviation-units.git
+  tag: f1706a951172c025375c33d59e812efec4aac332
+
+source-repository-package
+  type:git
+  location: https://github.com/qfpl/aviation-weight-balance.git
+  tag: b03f861f71428787e92f8d79948ff72610c18270
+
+source-repository-package
+  type:git
+  location: https://github.com/qfpl/aviation-cessna172-weight-balance.git
+  tag: 56658bf050f267bdbc8045b9f78250a223b77095
+
+source-repository-package
+  type:git
+  location: https://github.com/qfpl/aviation-cessna172-diagrams.git
+  tag: 8ecc35895474ccdadc17bfe24080bf0c75c43fe4
