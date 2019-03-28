@@ -32,8 +32,8 @@ butch = 100 ^. kilograms
 nickhamilton = 70 ^. kilograms
 antheahawley = 80 ^. kilograms
 jae = 100 ^. kilograms
-brendonhinze = 120 ^. kilograms
-kaydenhinze = 65 ^. kilograms
+--brendonhinze = 120 ^. kilograms
+--kaydenhinze = 65 ^. kilograms
 
 -- sarahvandyke = 60 ^. kilograms
 
